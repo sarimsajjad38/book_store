@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -38,7 +38,7 @@ class InventoryScreen extends StatelessWidget {
                   final books = bookProv.getSellerBooks(auth.user?.id ?? '');
                   if (books.isEmpty) {
                     return Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                      Icon(Icons.inventory_2_outlined, size: 60, color: (Theme.of(context).textTheme.bodySmall?.color ?? Colors.grey).withValues(alpha: 0.3)),
+                      Icon(Icons.inventory_2_outlined, size: 60, color: (Theme.of(context).textTheme.bodySmall?.color ?? Colors.grey).withOpacity(0.3)),
                       const SizedBox(height: 16),
                       Text('No books in inventory', style: GoogleFonts.poppins(fontSize: 16, color: Theme.of(context).textTheme.bodySmall?.color)),
                     ]));
@@ -62,7 +62,7 @@ class InventoryScreen extends StatelessWidget {
                             Row(children: [
                               Text('₹${book.price.toStringAsFixed(0)}', style: GoogleFonts.poppins(fontWeight: FontWeight.w700, color: Theme.of(context).brightness == Brightness.dark ? AppColors.accentLight : AppColors.primary)),
                               const SizedBox(width: 12),
-                              Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2), decoration: BoxDecoration(color: book.quantity > 0 ? AppColors.success.withValues(alpha: 0.1) : AppColors.error.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(6)),
+                              Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2), decoration: BoxDecoration(color: book.quantity > 0 ? AppColors.success.withOpacity(0.1) : AppColors.error.withOpacity(0.1), borderRadius: BorderRadius.circular(6)),
                                 child: Text('Qty: ${book.quantity}', style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w600, color: book.quantity > 0 ? AppColors.success : AppColors.error))),
                             ]),
                           ])),

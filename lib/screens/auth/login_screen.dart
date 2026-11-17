@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
@@ -107,7 +107,7 @@ class _LoginScreenState extends State<LoginScreen>
                           shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.2),
+                              color: Colors.black.withOpacity(0.2),
                               blurRadius: 16,
                               offset: const Offset(0, 6),
                             ),
@@ -146,7 +146,7 @@ class _LoginScreenState extends State<LoginScreen>
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.25),
+                              color: Colors.black.withOpacity(0.25),
                               blurRadius: 24,
                               offset: const Offset(0, 8),
                             ),
@@ -244,7 +244,7 @@ class _LoginScreenState extends State<LoginScreen>
                                     width: double.infinity,
                                     padding: const EdgeInsets.all(12),
                                     decoration: BoxDecoration(
-                                      color: AppColors.error.withValues(alpha: 0.1),
+                                      color: AppColors.error.withOpacity(0.1),
                                       borderRadius: BorderRadius.circular(10),
                                     ),
                                     child: Row(
@@ -285,7 +285,7 @@ class _LoginScreenState extends State<LoginScreen>
                                   width: double.infinity,
                                   padding: const EdgeInsets.all(12),
                                   decoration: BoxDecoration(
-                                    color: AppColors.info.withValues(alpha: 0.08),
+                                    color: AppColors.info.withOpacity(0.08),
                                     borderRadius: BorderRadius.circular(10),
                                   ),
                                   child: Column(
@@ -379,7 +379,7 @@ class _LoginScreenState extends State<LoginScreen>
           '$role: $email',
           style: GoogleFonts.poppins(
             fontSize: 11,
-            color: AppColors.info.withValues(alpha: 0.8),
+            color: AppColors.info.withOpacity(0.8),
           ),
         ),
       ),

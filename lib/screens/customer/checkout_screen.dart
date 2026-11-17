@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
@@ -239,7 +239,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: isSelected
-              ? primaryColor.withValues(alpha: 0.08)
+              ? primaryColor.withOpacity(0.08)
               : Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
@@ -302,7 +302,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 Container(
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: AppColors.success.withValues(alpha: 0.12),
+                    color: AppColors.success.withOpacity(0.12),
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(

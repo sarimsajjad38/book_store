@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:badges/badges.dart' as badges;
@@ -129,8 +129,8 @@ class CustomerHomeScreen extends StatelessWidget {
                           boxShadow: [
                             BoxShadow(
                               color: isDark
-                                  ? Colors.black.withValues(alpha: 0.15)
-                                  : const Color(0xFF382F24).withValues(alpha: 0.04),
+                                  ? Colors.black.withOpacity(0.15)
+                                  : const Color(0xFF382F24).withOpacity(0.04),
                               blurRadius: 10,
                               offset: const Offset(0, 2),
                             ),

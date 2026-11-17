@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -68,7 +68,7 @@ class CartScreen extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(24),
                     decoration: BoxDecoration(
-                      color: AppColors.primary.withValues(alpha: 0.08),
+                      color: AppColors.primary.withOpacity(0.08),
                       shape: BoxShape.circle,
                     ),
                     child: const Icon(
@@ -244,7 +244,7 @@ class CartScreen extends StatelessWidget {
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Theme.of(context).shadowColor.withValues(alpha: 0.06),
+                      color: Theme.of(context).shadowColor.withOpacity(0.06),
                       blurRadius: 20,
                       offset: const Offset(0, -5),
                     ),

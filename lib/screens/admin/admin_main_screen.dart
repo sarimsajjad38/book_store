@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../models/user.dart';
@@ -114,7 +114,7 @@ class _AdminMainScreenState extends State<AdminMainScreen> {
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(color: Theme.of(context).cardColor, borderRadius: BorderRadius.circular(14), border: Border.all(color: Theme.of(context).dividerColor)),
                   child: Row(children: [
-                    CircleAvatar(backgroundColor: primaryColor.withValues(alpha: 0.12), child: Text(u.name.isNotEmpty ? u.name[0].toUpperCase() : '?', style: GoogleFonts.poppins(fontWeight: FontWeight.w700, color: primaryColor))),
+                    CircleAvatar(backgroundColor: primaryColor.withOpacity(0.12), child: Text(u.name.isNotEmpty ? u.name[0].toUpperCase() : '?', style: GoogleFonts.poppins(fontWeight: FontWeight.w700, color: primaryColor))),
                     const SizedBox(width: 12),
                     Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                       Text(u.name, style: GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 14)),
@@ -122,7 +122,7 @@ class _AdminMainScreenState extends State<AdminMainScreen> {
                     ])),
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(color: _roleColor(u.role.name).withValues(alpha: 0.12), borderRadius: BorderRadius.circular(20)),
+                      decoration: BoxDecoration(color: _roleColor(u.role.name).withOpacity(0.12), borderRadius: BorderRadius.circular(20)),
                       child: Text(u.role.name.toUpperCase(), style: GoogleFonts.poppins(fontSize: 10, fontWeight: FontWeight.w600, color: _roleColor(u.role.name))),
                     ),
                   ]),
@@ -144,7 +144,7 @@ class _AdminMainScreenState extends State<AdminMainScreen> {
                   ])),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                    decoration: BoxDecoration(color: _orderStatusColor(o.status).withValues(alpha: 0.12), borderRadius: BorderRadius.circular(12)),
+                    decoration: BoxDecoration(color: _orderStatusColor(o.status).withOpacity(0.12), borderRadius: BorderRadius.circular(12)),
                     child: Text(o.statusLabel, style: GoogleFonts.poppins(fontSize: 10, fontWeight: FontWeight.w600, color: _orderStatusColor(o.status))),
                   ),
                 ]),
@@ -160,7 +160,7 @@ class _AdminMainScreenState extends State<AdminMainScreen> {
   Widget _statCard(String label, String value, IconData icon, Color color) {
     return Expanded(child: Container(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: color.withValues(alpha: 0.08), borderRadius: BorderRadius.circular(16), border: Border.all(color: color.withValues(alpha: 0.2))),
+      decoration: BoxDecoration(color: color.withOpacity(0.08), borderRadius: BorderRadius.circular(16), border: Border.all(color: color.withOpacity(0.2))),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Icon(icon, color: color, size: 24),
         const SizedBox(height: 10),

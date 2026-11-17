@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import '../models/order.dart';
 import '../utils/app_theme.dart';
 
@@ -50,14 +50,14 @@ class OrderStatusTimeline extends StatelessWidget {
                         : inactiveColor,
                     border: isCurrent
                         ? Border.all(
-                            color: AppColors.success.withValues(alpha: 0.35),
+                            color: AppColors.success.withOpacity(0.35),
                             width: 3,
                           )
                         : null,
                     boxShadow: isCurrent
                         ? [
                             BoxShadow(
-                              color: AppColors.success.withValues(alpha: 0.25),
+                              color: AppColors.success.withOpacity(0.25),
                               blurRadius: 8,
                               spreadRadius: 2,
                             ),

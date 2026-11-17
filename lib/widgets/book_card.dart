@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import '../models/book.dart';
 import '../utils/app_theme.dart';
@@ -40,8 +40,8 @@ class BookCard extends StatelessWidget {
                   boxShadow: [
                     BoxShadow(
                       color: isDark
-                          ? Colors.black.withValues(alpha: 0.4)
-                          : const Color(0xFF2C241B).withValues(alpha: 0.14),
+                          ? Colors.black.withOpacity(0.4)
+                          : const Color(0xFF2C241B).withOpacity(0.14),
                       blurRadius: 10,
                       offset: const Offset(0, 5),
                     ),
@@ -161,8 +161,8 @@ class BookListCard extends StatelessWidget {
           boxShadow: [
             BoxShadow(
               color: isDark
-                  ? Colors.black.withValues(alpha: 0.2)
-                  : const Color(0xFF382F24).withValues(alpha: 0.04),
+                  ? Colors.black.withOpacity(0.2)
+                  : const Color(0xFF382F24).withOpacity(0.04),
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
@@ -179,8 +179,8 @@ class BookListCard extends StatelessWidget {
                   boxShadow: [
                     BoxShadow(
                       color: isDark
-                          ? Colors.black.withValues(alpha: 0.3)
-                          : const Color(0xFF2C241B).withValues(alpha: 0.1),
+                          ? Colors.black.withOpacity(0.3)
+                          : const Color(0xFF2C241B).withOpacity(0.1),
                       blurRadius: 6,
                       offset: const Offset(0, 3),
                     ),
@@ -252,7 +252,7 @@ class BookListCard extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 7, vertical: 2),
                         decoration: BoxDecoration(
-                          color: AppColors.gold.withValues(alpha: 0.15),
+                          color: AppColors.gold.withOpacity(0.15),
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Row(
@@ -287,7 +287,7 @@ class BookListCard extends StatelessWidget {
                 icon: Container(
                   padding: const EdgeInsets.all(7),
                   decoration: BoxDecoration(
-                    color: primaryColor.withValues(alpha: 0.12),
+                    color: primaryColor.withOpacity(0.12),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Icon(

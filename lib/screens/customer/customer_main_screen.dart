@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'home_screen.dart';
 import 'search_screen.dart';
 import 'order_history_screen.dart';
@@ -32,7 +32,7 @@ class _CustomerMainScreenState extends State<CustomerMainScreen> {
         decoration: BoxDecoration(
           boxShadow: [
             BoxShadow(
-              color: Theme.of(context).shadowColor.withValues(alpha: 0.06),
+              color: Theme.of(context).shadowColor.withOpacity(0.06),
               blurRadius: 20,
               offset: const Offset(0, -5),
             ),

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../providers/book_provider.dart';
@@ -69,17 +69,17 @@ class _SearchScreenState extends State<SearchScreen> {
                 builder: (context, bookProvider, _) {
                   if (_query.isEmpty) {
                     return Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                      Icon(Icons.search_rounded, size: 70, color: (Theme.of(context).textTheme.bodySmall?.color ?? Colors.grey).withValues(alpha: 0.3)),
+                      Icon(Icons.search_rounded, size: 70, color: (Theme.of(context).textTheme.bodySmall?.color ?? Colors.grey).withOpacity(0.3)),
                       const SizedBox(height: 16),
                       Text('Search for books', style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.w600, color: Theme.of(context).textTheme.bodySmall?.color)),
                       const SizedBox(height: 6),
-                      Text('Find by title, author, or genre', style: GoogleFonts.poppins(fontSize: 13, color: (Theme.of(context).textTheme.bodySmall?.color ?? Colors.grey).withValues(alpha: 0.7))),
+                      Text('Find by title, author, or genre', style: GoogleFonts.poppins(fontSize: 13, color: (Theme.of(context).textTheme.bodySmall?.color ?? Colors.grey).withOpacity(0.7))),
                     ]));
                   }
                   final results = bookProvider.searchResults;
                   if (results.isEmpty) {
                     return Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                      Icon(Icons.search_off_rounded, size: 60, color: (Theme.of(context).textTheme.bodySmall?.color ?? Colors.grey).withValues(alpha: 0.3)),
+                      Icon(Icons.search_off_rounded, size: 60, color: (Theme.of(context).textTheme.bodySmall?.color ?? Colors.grey).withOpacity(0.3)),
                       const SizedBox(height: 16),
                       Text('No results found', style: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.w600, color: Theme.of(context).textTheme.bodySmall?.color)),
                     ]));

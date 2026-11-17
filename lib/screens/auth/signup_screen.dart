@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
@@ -121,7 +121,7 @@ class _SignUpScreenState extends State<SignUpScreen>
                           shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.2),
+                              color: Colors.black.withOpacity(0.2),
                               blurRadius: 16,
                               offset: const Offset(0, 6),
                             ),
@@ -160,7 +160,7 @@ class _SignUpScreenState extends State<SignUpScreen>
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.25),
+                              color: Colors.black.withOpacity(0.25),
                               blurRadius: 24,
                               offset: const Offset(0, 8),
                             ),
@@ -309,7 +309,7 @@ class _SignUpScreenState extends State<SignUpScreen>
                                     width: double.infinity,
                                     padding: const EdgeInsets.all(12),
                                     decoration: BoxDecoration(
-                                      color: AppColors.error.withValues(alpha: 0.1),
+                                      color: AppColors.error.withOpacity(0.1),
                                       borderRadius: BorderRadius.circular(10),
                                     ),
                                     child: Row(
@@ -437,7 +437,7 @@ class _SignUpScreenState extends State<SignUpScreen>
           padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
             color: isSelected
-                ? AppColors.primary.withValues(alpha: 0.1)
+                ? AppColors.primary.withOpacity(0.1)
                 : AppColors.bgLight,
             borderRadius: BorderRadius.circular(12),
             border: Border.all(

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
@@ -37,7 +37,7 @@ class OrderListScreen extends StatelessWidget {
                   if (orderProv.isLoading) return const Center(child: CircularProgressIndicator());
                   if (orderProv.orders.isEmpty) {
                     return Center(child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-                      Icon(Icons.receipt_long_outlined, size: 60, color: (Theme.of(context).textTheme.bodySmall?.color ?? Colors.grey).withValues(alpha: 0.3)),
+                      Icon(Icons.receipt_long_outlined, size: 60, color: (Theme.of(context).textTheme.bodySmall?.color ?? Colors.grey).withOpacity(0.3)),
                       const SizedBox(height: 16),
                       Text('No orders yet', style: GoogleFonts.poppins(fontSize: 16, color: Theme.of(context).textTheme.bodySmall?.color)),
                     ]));
@@ -57,7 +57,7 @@ class OrderListScreen extends StatelessWidget {
                             const Spacer(),
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                              decoration: BoxDecoration(color: _statusColor(order.status).withValues(alpha: 0.12), borderRadius: BorderRadius.circular(20)),
+                              decoration: BoxDecoration(color: _statusColor(order.status).withOpacity(0.12), borderRadius: BorderRadius.circular(20)),
                               child: Text(order.statusLabel, style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w600, color: _statusColor(order.status))),
                             ),
                           ]),

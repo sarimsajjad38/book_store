@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
@@ -201,7 +201,7 @@ class ProfileScreen extends StatelessWidget {
                       shape: BoxShape.circle,
                       boxShadow: [
                         BoxShadow(
-                          color: (isDark ? AppColors.accent : AppColors.primary).withValues(alpha: 0.25),
+                          color: (isDark ? AppColors.accent : AppColors.primary).withOpacity(0.25),
                           blurRadius: 16,
                           offset: const Offset(0, 6),
                         ),
@@ -235,7 +235,7 @@ class ProfileScreen extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
                     decoration: BoxDecoration(
-                      color: (isDark ? AppColors.accentLight : AppColors.primary).withValues(alpha: 0.12),
+                      color: (isDark ? AppColors.accentLight : AppColors.primary).withOpacity(0.12),
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
@@ -263,7 +263,7 @@ class ProfileScreen extends StatelessWidget {
                         Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: (isDark ? AppColors.accentLight : AppColors.primary).withValues(alpha: 0.1),
+                            color: (isDark ? AppColors.accentLight : AppColors.primary).withOpacity(0.1),
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: Icon(
@@ -411,7 +411,7 @@ class ProfileScreen extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: primaryColor.withValues(alpha: 0.1),
+                color: primaryColor.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Icon(icon, color: primaryColor, size: 20),

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import '../utils/app_theme.dart';
 
 class GradientButton extends StatefulWidget {
@@ -83,13 +83,13 @@ class _GradientButtonState extends State<GradientButton>
             gradient: baseGradient,
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
-              color: Colors.white.withValues(alpha: 0.12),
+              color: Colors.white.withOpacity(0.12),
               width: 1,
             ),
             boxShadow: isEnabled
                 ? [
                     BoxShadow(
-                      color: baseGradient.colors.first.withValues(alpha: 0.22),
+                      color: baseGradient.colors.first.withOpacity(0.22),
                       blurRadius: 10,
                       offset: const Offset(0, 4),
                     ),
