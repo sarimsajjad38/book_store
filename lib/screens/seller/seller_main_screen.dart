@@ -19,14 +19,21 @@ class _SellerMainScreenState extends State<SellerMainScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final sellerId = context.read<AuthProvider>().user?.id ?? '';
-      context.read<OrderProvider>().loadSellerOrders(sellerId);
+      final user = context.read<AuthProvider>().user;
+      context.read<OrderProvider>().loadSellerOrders(user?.id ?? '', user?.token);
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    const screens = [SellerDashboardScreen(), InventoryScreen(), OrderListScreen()];
+    final screens = [
+      SellerDashboardScreen(
+        onInventoryTap: () => setState(() => _currentIndex = 1),
+        onOrdersTap: () => setState(() => _currentIndex = 2),
+      ),
+      const InventoryScreen(),
+      const OrderListScreen(),
+    ];
     return Scaffold(
       body: IndexedStack(index: _currentIndex, children: screens),
       bottomNavigationBar: BottomNavigationBar(

@@ -113,8 +113,10 @@ class _SignUpScreenState extends State<SignUpScreen>
                   child: Column(
                     children: [
                       // Header
-                      Icon(Icons.auto_stories_rounded, color: Theme.of(context).cardColor,
-                        size: 48,
+                      const Icon(
+                        Icons.auto_stories_rounded,
+                        color: AppColors.accentLight,
+                        size: 46,
                       ),
                       const SizedBox(height: 12),
                       Text(
@@ -122,22 +124,26 @@ class _SignUpScreenState extends State<SignUpScreen>
                         style: GoogleFonts.poppins(
                           fontSize: 26,
                           fontWeight: FontWeight.w800,
-                          color: Theme.of(context).cardColor,
+                          color: Colors.white,
+                          letterSpacing: 0.5,
                         ),
                       ),
                       const SizedBox(height: 24),
 
                       // Card
                       Container(
-                        padding: const EdgeInsets.all(28),
+                        padding: const EdgeInsets.all(26),
                         decoration: BoxDecoration(
                           color: Theme.of(context).cardColor,
                           borderRadius: BorderRadius.circular(24),
+                          border: Border.all(
+                            color: Theme.of(context).dividerColor,
+                          ),
                           boxShadow: [
                             BoxShadow(
-                              color: Theme.of(context).shadowColor.withValues(alpha: 0.15),
-                              blurRadius: 30,
-                              offset: const Offset(0, 10),
+                              color: Colors.black.withValues(alpha: 0.25),
+                              blurRadius: 24,
+                              offset: const Offset(0, 8),
                             ),
                           ],
                         ),
@@ -332,7 +338,7 @@ class _SignUpScreenState extends State<SignUpScreen>
                           Text(
                             "Already have an account? ",
                             style: GoogleFonts.poppins(
-                              color: Theme.of(context).cardColor.withValues(alpha: 0.7),
+                              color: const Color(0xFFD5CEBF),
                               fontSize: 14,
                             ),
                           ),
@@ -341,11 +347,11 @@ class _SignUpScreenState extends State<SignUpScreen>
                             child: Text(
                               'Login',
                               style: GoogleFonts.poppins(
-                                color: Theme.of(context).cardColor,
+                                color: AppColors.accentLight,
                                 fontWeight: FontWeight.w700,
                                 fontSize: 14,
                                 decoration: TextDecoration.underline,
-                                decorationColor: Colors.white,
+                                decorationColor: AppColors.accentLight,
                               ),
                             ),
                           ),

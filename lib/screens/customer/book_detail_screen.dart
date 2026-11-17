@@ -15,47 +15,57 @@ class BookDetailScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = isDark ? AppColors.accentLight : AppColors.primary;
     final cart = context.watch<CartProvider>();
     final isInCart = cart.isInCart(book.id);
 
     return Scaffold(
-      backgroundColor: AppColors.bgLight,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: CustomScrollView(
         slivers: [
           // Hero App Bar
           SliverAppBar(
             expandedHeight: 340,
             pinned: true,
-            backgroundColor: AppColors.primary,
+            backgroundColor: AppColors.primaryDark,
             leading: IconButton(
               onPressed: () => Navigator.pop(context),
               icon: Container(
-                padding: const EdgeInsets.all(6),
+                padding: const EdgeInsets.all(7),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).shadowColor.withValues(alpha: 0.2),
+                  color: Colors.black.withValues(alpha: 0.3),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Icon(Icons.arrow_back_rounded, color: Theme.of(context).cardColor),
+                child: const Icon(
+                  Icons.arrow_back_rounded,
+                  color: Colors.white,
+                  size: 20,
+                ),
               ),
             ),
             flexibleSpace: FlexibleSpaceBar(
               background: Container(
                 decoration: const BoxDecoration(
-                  gradient: AppColors.heroGradient,
+                  gradient: LinearGradient(
+                    colors: [Color(0xFF141F2A), Color(0xFF233242), Color(0xFF18232E)],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                  ),
                 ),
                 child: Center(
                   child: Hero(
                     tag: 'book_${book.id}',
                     child: Container(
-                      margin: const EdgeInsets.only(top: 60),
+                      margin: const EdgeInsets.only(top: 55),
                       height: 220,
                       width: 150,
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(12),
                         boxShadow: [
                           BoxShadow(
-                            color: Theme.of(context).shadowColor.withValues(alpha: 0.4),
-                            blurRadius: 25,
+                            color: Colors.black.withValues(alpha: 0.45),
+                            blurRadius: 24,
                             offset: const Offset(0, 12),
                           ),
                         ],
@@ -67,7 +77,7 @@ class BookDetailScreen extends StatelessWidget {
                           fit: BoxFit.cover,
                           errorWidget: (_, __, ___) => Container(
                             color: Theme.of(context).dividerColor,
-                            child: const Icon(Icons.book, size: 60),
+                            child: const Icon(Icons.book_rounded, size: 60),
                           ),
                         ),
                       ),
@@ -83,9 +93,9 @@ class BookDetailScreen extends StatelessWidget {
             child: Transform.translate(
               offset: const Offset(0, -20),
               child: Container(
-                decoration: const BoxDecoration(
-                  color: AppColors.bgLight,
-                  borderRadius: BorderRadius.vertical(
+                decoration: BoxDecoration(
+                  color: Theme.of(context).scaffoldBackgroundColor,
+                  borderRadius: const BorderRadius.vertical(
                     top: Radius.circular(24),
                   ),
                 ),
@@ -100,6 +110,7 @@ class BookDetailScreen extends StatelessWidget {
                         fontSize: 24,
                         fontWeight: FontWeight.w700,
                         color: Theme.of(context).textTheme.bodyLarge?.color,
+                        height: 1.25,
                       ),
                     ),
                     const SizedBox(height: 6),
@@ -121,14 +132,14 @@ class BookDetailScreen extends StatelessWidget {
                           '(${book.reviewCount} reviews)',
                           AppColors.gold,
                         ),
-                        const SizedBox(width: 12),
+                        const SizedBox(width: 10),
                         _buildStatChip(context, 
                           Icons.category_outlined,
                           book.category,
                           '',
-                          AppColors.primary,
+                          primaryColor,
                         ),
-                        const SizedBox(width: 12),
+                        const SizedBox(width: 10),
                         _buildStatChip(context, 
                           Icons.inventory_2_outlined,
                           book.quantity > 0 ? 'In Stock' : 'Out of Stock',
@@ -141,20 +152,24 @@ class BookDetailScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 24),
 
-                    // Price
+                    // Price Container
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            AppColors.primary.withValues(alpha: 0.08),
-                            AppColors.primaryLight.withValues(alpha: 0.05),
-                          ],
-                        ),
-                        borderRadius: BorderRadius.circular(14),
+                        color: Theme.of(context).cardColor,
+                        borderRadius: BorderRadius.circular(16),
                         border: Border.all(
-                          color: AppColors.primary.withValues(alpha: 0.15),
+                          color: Theme.of(context).dividerColor,
                         ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: isDark
+                                ? Colors.black.withValues(alpha: 0.15)
+                                : const Color(0xFF382F24).withValues(alpha: 0.04),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
                       ),
                       child: Row(
                         children: [
@@ -173,7 +188,7 @@ class BookDetailScreen extends StatelessWidget {
                                 style: GoogleFonts.poppins(
                                   fontSize: 28,
                                   fontWeight: FontWeight.w800,
-                                  color: AppColors.primary,
+                                  color: primaryColor,
                                 ),
                               ),
                             ],
@@ -182,23 +197,23 @@ class BookDetailScreen extends StatelessWidget {
                           if (book.price > 500)
                             Container(
                               padding: const EdgeInsets.symmetric(
-                                  horizontal: 10, vertical: 4),
+                                  horizontal: 12, vertical: 6),
                               decoration: BoxDecoration(
-                                color: AppColors.success.withValues(alpha: 0.15),
+                                color: AppColors.success.withValues(alpha: 0.12),
                                 borderRadius: BorderRadius.circular(20),
                               ),
-                              child: Row(
+                              child: const Row(
                                 children: [
-                                  const Icon(
+                                  Icon(
                                     Icons.local_shipping_outlined,
-                                    size: 14,
+                                    size: 15,
                                     color: AppColors.success,
                                   ),
-                                  const SizedBox(width: 4),
+                                  SizedBox(width: 5),
                                   Text(
                                     'Free Delivery',
-                                    style: GoogleFonts.poppins(
-                                      fontSize: 11,
+                                    style: TextStyle(
+                                      fontSize: 12,
                                       fontWeight: FontWeight.w600,
                                       color: AppColors.success,
                                     ),
@@ -239,6 +254,7 @@ class BookDetailScreen extends StatelessWidget {
                         // Wishlist button
                         Container(
                           decoration: BoxDecoration(
+                            color: Theme.of(context).cardColor,
                             border: Border.all(color: Theme.of(context).dividerColor),
                             borderRadius: BorderRadius.circular(14),
                           ),
@@ -246,14 +262,14 @@ class BookDetailScreen extends StatelessWidget {
                             onPressed: () {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 const SnackBar(
-                                  content: Text('Added to wishlist!'),
+                                  content: Text('Added to reading wishlist! 📚'),
                                   duration: Duration(seconds: 1),
                                 ),
                               );
                             },
                             icon: const Icon(
-                              Icons.favorite_border_rounded,
-                              color: AppColors.error,
+                              Icons.bookmark_border_rounded,
+                              color: AppColors.accent,
                             ),
                           ),
                         ),
@@ -281,6 +297,7 @@ class BookDetailScreen extends StatelessWidget {
                                         '${book.title} added to cart'),
                                     action: SnackBarAction(
                                       label: 'VIEW CART',
+                                      textColor: isDark ? AppColors.accentLight : AppColors.gold,
                                       onPressed: () => Navigator.push(
                                         context,
                                         MaterialPageRoute(
@@ -299,7 +316,7 @@ class BookDetailScreen extends StatelessWidget {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 24),
                   ],
                 ),
               ),
@@ -317,7 +334,10 @@ class BookDetailScreen extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
         decoration: BoxDecoration(
           color: color.withValues(alpha: 0.08),
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: color.withValues(alpha: 0.15),
+          ),
         ),
         child: Column(
           children: [

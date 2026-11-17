@@ -11,12 +11,17 @@ import '../../utils/constants.dart';
 import '../../widgets/book_card.dart';
 import 'book_detail_screen.dart';
 import 'cart_screen.dart';
+import 'search_screen.dart';
 
 class CustomerHomeScreen extends StatelessWidget {
-  const CustomerHomeScreen({super.key});
+  final VoidCallback? onSearchTap;
+  const CustomerHomeScreen({super.key, this.onSearchTap});
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = isDark ? AppColors.accentLight : AppColors.primary;
+
     return Scaffold(
       body: SafeArea(
         child: Consumer2<BookProvider, AuthProvider>(
@@ -34,13 +39,13 @@ class CustomerHomeScreen extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Hello, ${authProvider.user?.name.split(' ').first ?? 'Reader'} 👋',
+                                'Welcome, ${authProvider.user?.name.split(' ').first ?? 'Reader'} 📖',
                                 style: GoogleFonts.poppins(
                                   fontSize: 14,
                                   color: Theme.of(context).textTheme.bodySmall?.color,
                                 ),
                               ),
-                              const SizedBox(height: 2),
+                              const SizedBox(height: 3),
                               Text(
                                 'Find your next\ngreat read',
                                 style: GoogleFonts.poppins(
@@ -48,6 +53,7 @@ class CustomerHomeScreen extends StatelessWidget {
                                   fontWeight: FontWeight.w800,
                                   color: Theme.of(context).textTheme.bodyLarge?.color,
                                   height: 1.2,
+                                  letterSpacing: -0.4,
                                 ),
                               ),
                             ],
@@ -65,8 +71,8 @@ class CustomerHomeScreen extends StatelessWidget {
                                 showBadge: cart.itemCount > 0,
                                 badgeContent: Text(
                                   cart.itemCount.toString(),
-                                  style: TextStyle(
-                                    color: Theme.of(context).cardColor,
+                                  style: const TextStyle(
+                                    color: Colors.white,
                                     fontSize: 10,
                                     fontWeight: FontWeight.bold,
                                   ),
@@ -77,12 +83,15 @@ class CustomerHomeScreen extends StatelessWidget {
                                 child: Container(
                                   padding: const EdgeInsets.all(10),
                                   decoration: BoxDecoration(
-                                    color: AppColors.bgLight,
+                                    color: Theme.of(context).cardColor,
                                     borderRadius: BorderRadius.circular(12),
                                     border: Border.all(
                                         color: Theme.of(context).dividerColor),
                                   ),
-                                  child: Icon(Icons.shopping_cart_outlined, color: Theme.of(context).textTheme.bodyLarge?.color,
+                                  child: Icon(
+                                    Icons.shopping_cart_outlined,
+                                    color: Theme.of(context).textTheme.bodyLarge?.color,
+                                    size: 22,
                                   ),
                                 ),
                               ),
@@ -97,10 +106,18 @@ class CustomerHomeScreen extends StatelessWidget {
                 // Search Bar
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
+                    padding: const EdgeInsets.fromLTRB(20, 18, 20, 10),
                     child: GestureDetector(
                       onTap: () {
-                        // Switch to search tab
+                        if (onSearchTap != null) {
+                          onSearchTap!();
+                        } else {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (_) => const SearchScreen()),
+                          );
+                        }
                       },
                       child: Container(
                         padding: const EdgeInsets.symmetric(
@@ -111,7 +128,9 @@ class CustomerHomeScreen extends StatelessWidget {
                           border: Border.all(color: Theme.of(context).dividerColor),
                           boxShadow: [
                             BoxShadow(
-                              color: Theme.of(context).shadowColor.withValues(alpha: 0.04),
+                              color: isDark
+                                  ? Colors.black.withValues(alpha: 0.15)
+                                  : const Color(0xFF382F24).withValues(alpha: 0.04),
                               blurRadius: 10,
                               offset: const Offset(0, 2),
                             ),
@@ -119,10 +138,11 @@ class CustomerHomeScreen extends StatelessWidget {
                         ),
                         child: Row(
                           children: [
-                            Icon(Icons.search_rounded, color: Theme.of(context).textTheme.bodySmall?.color),
+                            Icon(Icons.search_rounded,
+                                color: Theme.of(context).textTheme.bodySmall?.color),
                             const SizedBox(width: 10),
                             Text(
-                              'Search books, authors...',
+                              'Search by title, author, or genre...',
                               style: GoogleFonts.poppins(
                                 color: Theme.of(context).textTheme.bodySmall?.color,
                                 fontSize: 14,
@@ -138,7 +158,7 @@ class CustomerHomeScreen extends StatelessWidget {
                 // Categories
                 SliverToBoxAdapter(
                   child: SizedBox(
-                    height: 50,
+                    height: 48,
                     child: ListView.builder(
                       scrollDirection: Axis.horizontal,
                       padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -147,24 +167,26 @@ class CustomerHomeScreen extends StatelessWidget {
                         final category = BookCategories.all[index];
                         final isSelected =
                             bookProvider.selectedCategory == category;
+                        final activeBg = isDark ? AppColors.accent : AppColors.primary;
+
                         return Padding(
                           padding: const EdgeInsets.only(right: 8),
                           child: GestureDetector(
                             onTap: () =>
                                 bookProvider.selectCategory(category),
                             child: AnimatedContainer(
-                              duration: const Duration(milliseconds: 250),
+                              duration: const Duration(milliseconds: 200),
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 16, vertical: 8),
                               decoration: BoxDecoration(
                                 color: isSelected
-                                    ? AppColors.primary
-                                    : Colors.white,
-                                borderRadius: BorderRadius.circular(25),
+                                    ? activeBg
+                                    : Theme.of(context).cardColor,
+                                borderRadius: BorderRadius.circular(22),
                                 border: Border.all(
                                   color: isSelected
-                                      ? AppColors.primary
-                                      : Colors.grey.shade300,
+                                      ? activeBg
+                                      : Theme.of(context).dividerColor,
                                 ),
                               ),
                               child: Center(
@@ -177,7 +199,7 @@ class CustomerHomeScreen extends StatelessWidget {
                                         : FontWeight.w400,
                                     color: isSelected
                                         ? Colors.white
-                                        : AppColors.textSecondary,
+                                        : Theme.of(context).textTheme.bodyMedium?.color,
                                   ),
                                 ),
                               ),
@@ -197,19 +219,32 @@ class CustomerHomeScreen extends StatelessWidget {
                       child: Row(
                         children: [
                           Text(
-                            '🔥 Featured',
+                            'Featured Curations',
                             style: GoogleFonts.poppins(
                               fontSize: 18,
                               fontWeight: FontWeight.w700,
                             ),
                           ),
                           const Spacer(),
-                          Text(
-                            'See all',
-                            style: GoogleFonts.poppins(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w500,
-                              color: AppColors.primary,
+                          GestureDetector(
+                            onTap: () {
+                              if (onSearchTap != null) {
+                                onSearchTap!();
+                              } else {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (_) => const SearchScreen()),
+                                );
+                              }
+                            },
+                            child: Text(
+                              'See all',
+                              style: GoogleFonts.poppins(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: primaryColor,
+                              ),
                             ),
                           ),
                         ],
@@ -243,7 +278,7 @@ class CustomerHomeScreen extends StatelessWidget {
                       child: Row(
                         children: [
                           Text(
-                            '✨ Recommended for You',
+                            'Recommended for You',
                             style: GoogleFonts.poppins(
                               fontSize: 18,
                               fontWeight: FontWeight.w700,
@@ -272,12 +307,14 @@ class CustomerHomeScreen extends StatelessWidget {
                   ),
                 ],
 
-                // All Books
+                // All Books / Selected Category
                 SliverToBoxAdapter(
                   child: Padding(
                     padding: const EdgeInsets.fromLTRB(20, 24, 20, 14),
                     child: Text(
-                      '📚 ${bookProvider.selectedCategory == 'All' ? 'All Books' : bookProvider.selectedCategory}',
+                      bookProvider.selectedCategory == 'All'
+                          ? 'All Titles'
+                          : bookProvider.selectedCategory,
                       style: GoogleFonts.poppins(
                         fontSize: 18,
                         fontWeight: FontWeight.w700,
@@ -303,7 +340,8 @@ class CustomerHomeScreen extends StatelessWidget {
                         child: Column(
                           children: [
                             Icon(Icons.search_off_rounded,
-                                size: 60, color: Theme.of(context).textTheme.bodySmall?.color),
+                                size: 60,
+                                color: Theme.of(context).textTheme.bodySmall?.color),
                             const SizedBox(height: 12),
                             Text(
                               'No books found in this category',
@@ -335,9 +373,10 @@ class CustomerHomeScreen extends StatelessWidget {
                                   content: Text(
                                       '${book.title} added to cart'),
                                   duration:
-                                      const Duration(milliseconds: 1200),
+                                      const Duration(milliseconds: 1400),
                                   action: SnackBarAction(
                                     label: 'VIEW CART',
+                                    textColor: isDark ? AppColors.accentLight : AppColors.gold,
                                     onPressed: () => Navigator.push(
                                       context,
                                       MaterialPageRoute(

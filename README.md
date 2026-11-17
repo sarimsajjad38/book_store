@@ -12,7 +12,7 @@
 
 ## ✨ Overview
 
-**BookNest** is a comprehensive, multi-platform bookstore application built with **Flutter** and **Node.js**. It provides a seamless shopping experience for customers, a robust management tool for sellers, and a powerful dashboard for administrators.
+**BookNest** is a comprehensive, production-ready bookstore application built with **Flutter** (Android, iOS, Web) and **Node.js** (Express & MongoDB). It features multi-role capabilities for customers, sellers, and platform administrators, connected via a REST API with resilient offline fallback.
 
 <p align="center">
   <img src="assets/readme/mockup.png" width="600" alt="BookNest App Mockup">
@@ -23,33 +23,34 @@
 ## 🚀 Key Features
 
 ### 👤 User Roles
-- **Customers**: Browse books, manage cart, place orders, and view recommendations.
-- **Sellers**: Manage book inventory, track sales, and process orders.
-- **Admins**: Comprehensive dashboard with platform-wide statistics and user management.
+- **Customers**: Browse catalog, intelligent recommendation engine, real-time cart persistence, checkout with delivery calculation, order history, and live tracking timeline.
+- **Sellers**: Dashboard analytics, full book inventory CRUD, real-time order processing, and status progression.
+- **Admins**: Platform-wide metrics (revenue, total books, user roles, order stats) and user management.
 
-### 🛠 Core Functionality
-- **Authentication**: Secure login and signup with JWT and password hashing.
-- **Book Discovery**: Advanced search and categorization.
-- **Shopping Cart**: Real-time cart management.
-- **Order Tracking**: Detailed order history and status updates.
-- **Admin Analytics**: Real-time stats for revenue, users, and books.
-- **Themes**: Elegant Light and Dark modes.
+### 🛠 Core Technical Capabilities
+- **Dual Mode Connectivity**: Full REST API integration via `ApiService` with seamless offline/mock fallback.
+- **Session Persistence**: Persistent JWT tokens and stored user profiles with role-based splash redirection.
+- **Cart & Theme Persistence**: Saved cart items and theme mode (Light & Dark) across app restarts via `SharedPreferences`.
+- **Search & Discovery**: Case-insensitive text and category filtering.
+- **Security**: JWT authentication, bcrypt password hashing, CORS whitelist protection, and centralized error handling.
+- **Containerization**: One-command local development or cloud deployment via `docker-compose`.
 
 ---
 
 ## 🛠 Tech Stack
 
 ### Frontend
-- **Framework**: Flutter (Dart)
+- **Framework**: Flutter (Dart 3.x)
 - **State Management**: Provider
-- **Networking**: Http
-- **UI Components**: Material 3, Google Fonts, Badges
+- **Networking**: Http (`ApiService`)
+- **Persistence**: SharedPreferences
+- **UI Components**: Material 3, Google Fonts, CachedNetworkImage, Badges
 
 ### Backend
-- **Runtime**: Node.js
+- **Runtime**: Node.js (v18+)
 - **Framework**: Express.js
-- **Database**: MongoDB (via Mongoose)
-- **Security**: JWT, BcryptJS, Express Validator
+- **Database**: MongoDB (Local or MongoDB Atlas) via Mongoose
+- **Security**: JWT, BcryptJS, Express Validator, CORS
 
 ---
 
@@ -57,52 +58,111 @@
 
 ```text
 book_store/
-├── lib/                  # Flutter Frontend
-│   ├── models/           # Data structures
-│   ├── providers/        # State management logic
-│   ├── screens/          # UI Screens (Auth, Admin, Customer, Seller)
-│   ├── utils/            # Themes and constants
-│   └── main.dart         # App entry point
-├── backend/              # Node.js Backend
-│   ├── config/           # DB configuration
-│   ├── middleware/       # Auth and validation
-│   ├── models/           # MongoDB schemas
-│   ├── routes/           # API endpoints
-│   └── server.js         # Backend entry point
-└── assets/               # Images and static files
+├── lib/                         # Flutter Frontend
+│   ├── models/                  # AppUser, Book, Order, CartItem
+│   ├── providers/               # Auth, Book, Cart, Order, Theme Providers
+│   ├── screens/
+│   │   ├── admin/               # Admin panel & stats
+│   │   ├── auth/                # Splash, Login, Signup
+│   │   ├── customer/            # Home, Search, BookDetail, Cart, Checkout, Tracking
+│   │   └── seller/              # Dashboard, Inventory, Add/Edit Book, Orders
+│   ├── services/
+│   │   ├── api_service.dart     # REST API Client (Auth, Books, Orders, Admin)
+│   │   └── mock_data_service.dart # In-memory fallback dataset
+│   ├── utils/                   # AppTheme, ApiConstants
+│   ├── widgets/                 # BookCard, GradientButton, Timeline
+│   └── main.dart                # App entry point
+├── backend/                     # Node.js Backend API
+│   ├── config/                  # MongoDB connection (db.js)
+│   ├── middleware/              # JWT protect & role authorize
+│   ├── models/                  # User, Book, Order schemas
+│   ├── routes/                  # /auth, /books, /orders, /recommendations
+│   ├── seed.js                  # Database bootstrap script
+│   ├── Dockerfile               # Production container file
+│   └── server.js                # API server & error handling
+├── android/                     # Android build config & key.properties template
+├── ios/                         # iOS Runner & Info.plist permissions
+├── web/                         # Web build & manifest.json
+└── docker-compose.yml           # Multi-container local/cloud deployment
 ```
 
 ---
 
-## ⚙️ Installation & Setup
+## ⚙️ Quick Start
 
-### Prerequisites
-- [Flutter SDK](https://docs.flutter.dev/get-started/install)
-- [Node.js](https://nodejs.org/)
-- [MongoDB](https://www.mongodb.com/) (Local or Atlas)
+### 1. Run with Docker (Fastest)
 
-### 1. Backend Setup
+```bash
+docker-compose up -d
+```
+Starts MongoDB on `localhost:27017` and the BookNest API on `localhost:5000`.
+
+### 2. Backend Manual Setup
+
 ```bash
 cd backend
 npm install
-# Create a .env file based on .env.example
+
+# Copy environment template
+cp .env.example .env
+
+# Seed initial admin, sellers, customers, and books
+npm run seed
+
+# Start development server
 npm run dev
 ```
 
-### 2. Frontend Setup
+### 3. Frontend Setup
+
 ```bash
+# In the root directory
 flutter pub get
 flutter run
 ```
 
 ---
 
-## 📄 License
+## 🔑 Default Seed Accounts
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+All accounts use the password: `password123`
+
+| Role | Email | Capabilities |
+| :--- | :--- | :--- |
+| **Admin** | `admin@booknest.com` | View revenue, platform stats, manage users & orders |
+| **Seller** | `seller@booknest.com` | Manage inventory, add books, fulfill orders |
+| **Customer** | `customer@booknest.com` | Browse, order books, track delivery |
 
 ---
 
-<p align="center">
-  Made with ❤️ by <a href="https://github.com/sarimsajjad38">Sarim Sajjad</a>
-</p>
+## 🚢 Deployment & Production Build
+
+### Backend Deployment (Render / Railway / AWS / GCP)
+1. Provision a MongoDB database on [MongoDB Atlas](https://www.mongodb.com/atlas).
+2. Set environment variables on your cloud provider:
+   - `NODE_ENV=production`
+   - `PORT=5000`
+   - `MONGODB_URI=mongodb+srv://<user>:<password>@cluster.mongodb.net/booknest`
+   - `JWT_SECRET=<secure-random-key>`
+   - `CLIENT_ORIGINS=https://your-domain.web.app`
+3. Deploy via the provided [Dockerfile](backend/Dockerfile) or container registry.
+
+### Android Release Build (Google Play)
+1. Copy `android/key.properties.example` to `android/key.properties` and add your keystore credentials.
+2. Build the app bundle:
+   ```bash
+   flutter build appbundle --release
+   ```
+   Output: `build/app/outputs/bundle/release/app-release.aab`
+
+### Web Release Build (Firebase / Netlify / Vercel)
+```bash
+flutter build web --release
+```
+Output: `build/web/`
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

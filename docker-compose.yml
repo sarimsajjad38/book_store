@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:6-jammy
+    container_name: booknest-mongodb
+    restart: always
+    ports:
+      - '27017:27017'
+    environment:
+      MONGO_INITDB_DATABASE: booknest
+    volumes:
+      - mongo-data:/data/db
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: booknest-api
+    restart: always
+    ports:
+      - '5000:5000'
+    environment:
+      PORT: 5000
+      MONGODB_URI: mongodb://mongodb:27017/booknest
+      JWT_SECRET: booknest_docker_super_secret_production_key_12345
+      JWT_EXPIRE: 30d
+      CLIENT_ORIGINS: '*'
+    depends_on:
+      - mongodb
+
+volumes:
+  mongo-data:
+

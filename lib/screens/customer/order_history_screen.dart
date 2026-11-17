@@ -20,8 +20,8 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final userId = context.read<AuthProvider>().user?.id ?? '';
-      context.read<OrderProvider>().loadUserOrders(userId);
+      final user = context.read<AuthProvider>().user;
+      context.read<OrderProvider>().loadUserOrders(user?.id ?? '', user?.token);
     });
   }
 

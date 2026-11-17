@@ -6,9 +6,18 @@ import '../../providers/book_provider.dart';
 import '../../providers/order_provider.dart';
 import '../../utils/app_theme.dart';
 import 'add_book_screen.dart';
+import 'inventory_screen.dart';
+import 'order_list_screen.dart';
 
 class SellerDashboardScreen extends StatelessWidget {
-  const SellerDashboardScreen({super.key});
+  final VoidCallback? onInventoryTap;
+  final VoidCallback? onOrdersTap;
+
+  const SellerDashboardScreen({
+    super.key,
+    this.onInventoryTap,
+    this.onOrdersTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -97,7 +106,14 @@ class SellerDashboardScreen extends StatelessWidget {
                   'Update stock and prices',
                   Icons.inventory_rounded,
                   AppColors.info, () {
-                // Switch to inventory tab
+                if (onInventoryTap != null) {
+                  onInventoryTap!();
+                } else {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const InventoryScreen()),
+                  );
+                }
               }),
               _buildActionCard(
                   context,
@@ -105,7 +121,14 @@ class SellerDashboardScreen extends StatelessWidget {
                   'Process and track orders',
                   Icons.local_shipping_rounded,
                   AppColors.accent, () {
-                // Switch to orders tab
+                if (onOrdersTap != null) {
+                  onOrdersTap!();
+                } else {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const OrderListScreen()),
+                  );
+                }
               }),
             ],
           ),

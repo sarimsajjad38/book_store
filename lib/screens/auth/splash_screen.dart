@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
+import '../../providers/auth_provider.dart';
+import '../../models/user.dart';
 import '../../utils/app_theme.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -40,7 +43,22 @@ class _SplashScreenState extends State<SplashScreen>
 
     Future.delayed(const Duration(seconds: 2), () {
       if (mounted) {
-        Navigator.pushReplacementNamed(context, '/login');
+        final auth = context.read<AuthProvider>();
+        if (auth.isLoggedIn && auth.role != null) {
+          switch (auth.role!) {
+            case UserRole.admin:
+              Navigator.pushReplacementNamed(context, '/admin');
+              break;
+            case UserRole.seller:
+              Navigator.pushReplacementNamed(context, '/seller');
+              break;
+            case UserRole.customer:
+              Navigator.pushReplacementNamed(context, '/customer');
+              break;
+          }
+        } else {
+          Navigator.pushReplacementNamed(context, '/login');
+        }
       }
     });
   }
@@ -70,47 +88,49 @@ class _SplashScreenState extends State<SplashScreen>
               children: [
                 // Logo
                 Container(
-                  width: 100,
-                  height: 100,
+                  width: 96,
+                  height: 96,
                   decoration: BoxDecoration(
-                    color: Theme.of(context).cardColor.withValues(alpha: 0.15),
+                    color: Colors.white.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(24),
                     border: Border.all(
-                      color: Theme.of(context).cardColor.withValues(alpha: 0.3),
+                      color: Colors.white.withValues(alpha: 0.22),
                       width: 1.5,
                     ),
                   ),
-                  child: Icon(Icons.auto_stories_rounded, color: Theme.of(context).cardColor,
-                    size: 52,
+                  child: const Icon(
+                    Icons.auto_stories_rounded,
+                    color: AppColors.accentLight,
+                    size: 48,
                   ),
                 ),
                 const SizedBox(height: 24),
                 Text(
                   'BookNest',
                   style: GoogleFonts.poppins(
-                    fontSize: 36,
+                    fontSize: 34,
                     fontWeight: FontWeight.w800,
-                    color: Theme.of(context).cardColor,
-                    letterSpacing: 1,
+                    color: Colors.white,
+                    letterSpacing: 0.5,
                   ),
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Your Literary Paradise',
+                  'Your Literary Haven',
                   style: GoogleFonts.poppins(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w300,
-                    color: Theme.of(context).cardColor.withValues(alpha: 0.8),
-                    letterSpacing: 2,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w400,
+                    color: const Color(0xFFD5CEBF),
+                    letterSpacing: 1.5,
                   ),
                 ),
                 const SizedBox(height: 48),
-                SizedBox(
-                  width: 32,
-                  height: 32,
+                const SizedBox(
+                  width: 28,
+                  height: 28,
                   child: CircularProgressIndicator(
-                    color: Theme.of(context).cardColor.withValues(alpha: 0.7),
-                    strokeWidth: 2.5,
+                    color: AppColors.accentLight,
+                    strokeWidth: 2.2,
                   ),
                 ),
               ],

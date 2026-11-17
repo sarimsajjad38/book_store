@@ -35,9 +35,9 @@ class _GradientButtonState extends State<GradientButton>
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 150),
+      duration: const Duration(milliseconds: 120),
     );
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.96).animate(
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.97).animate(
       CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
     );
   }
@@ -50,8 +50,15 @@ class _GradientButtonState extends State<GradientButton>
 
   @override
   Widget build(BuildContext context) {
+    final isEnabled = widget.onPressed != null && !widget.isLoading;
+    final baseGradient = isEnabled
+        ? widget.gradient
+        : LinearGradient(
+            colors: [Colors.grey.shade400, Colors.grey.shade500],
+          );
+
     return AnimatedBuilder(
-      listenable: _scaleAnimation,
+      animation: _scaleAnimation,
       builder: (context, child) {
         return Transform.scale(
           scale: _scaleAnimation.value,
@@ -59,51 +66,59 @@ class _GradientButtonState extends State<GradientButton>
         );
       },
       child: GestureDetector(
-        onTapDown: (_) => _controller.forward(),
-        onTapUp: (_) => _controller.reverse(),
-        onTapCancel: () => _controller.reverse(),
+        onTapDown: (_) {
+          if (isEnabled) _controller.forward();
+        },
+        onTapUp: (_) {
+          if (isEnabled) _controller.reverse();
+        },
+        onTapCancel: () {
+          if (isEnabled) _controller.reverse();
+        },
         onTap: widget.isLoading ? null : widget.onPressed,
         child: Container(
           width: widget.width ?? double.infinity,
           height: widget.height,
           decoration: BoxDecoration(
-            gradient: widget.onPressed == null && !widget.isLoading
-                ? LinearGradient(
-                    colors: [Colors.grey.shade400, Colors.grey.shade500],
-                  )
-                : widget.gradient,
+            gradient: baseGradient,
             borderRadius: BorderRadius.circular(14),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.primary.withValues(alpha: 0.35),
-                blurRadius: 12,
-                offset: const Offset(0, 5),
-              ),
-            ],
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.12),
+              width: 1,
+            ),
+            boxShadow: isEnabled
+                ? [
+                    BoxShadow(
+                      color: baseGradient.colors.first.withValues(alpha: 0.22),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ]
+                : null,
           ),
           child: Center(
             child: widget.isLoading
-                ? SizedBox(
-                    width: 24,
-                    height: 24,
+                ? const SizedBox(
+                    width: 22,
+                    height: 22,
                     child: CircularProgressIndicator(
-                      color: Theme.of(context).cardColor,
-                      strokeWidth: 2.5,
+                      color: Colors.white,
+                      strokeWidth: 2.2,
                     ),
                   )
                 : Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       if (widget.icon != null) ...[
-                        Icon(widget.icon, color: Theme.of(context).cardColor, size: 20),
+                        Icon(widget.icon, color: Colors.white, size: 20),
                         const SizedBox(width: 8),
                       ],
                       Text(
                         widget.text,
-                        style: TextStyle(
-                          color: Theme.of(context).cardColor,
+                        style: const TextStyle(
+                          color: Colors.white,
                           fontWeight: FontWeight.w600,
-                          fontSize: 16,
+                          fontSize: 15,
                           letterSpacing: 0.3,
                         ),
                       ),
@@ -113,22 +128,5 @@ class _GradientButtonState extends State<GradientButton>
         ),
       ),
     );
-  }
-}
-
-class AnimatedBuilder extends AnimatedWidget {
-  final Widget Function(BuildContext, Widget?) builder;
-  final Widget? child;
-
-  const AnimatedBuilder({
-    super.key,
-    required super.listenable,
-    required this.builder,
-    this.child,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return builder(context, child);
   }
 }

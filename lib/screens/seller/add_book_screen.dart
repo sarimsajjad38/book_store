@@ -32,7 +32,9 @@ class _AddBookScreenState extends State<AddBookScreen> {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _isLoading = true);
     final provider = context.read<BookProvider>();
-    final sellerId = context.read<AuthProvider>().user?.id ?? '';
+    final auth = context.read<AuthProvider>();
+    final sellerId = auth.user?.id ?? '';
+    final token = auth.user?.token;
     
     await Future.delayed(const Duration(milliseconds: 500));
     if (!mounted) return;
@@ -45,11 +47,11 @@ class _AddBookScreenState extends State<AddBookScreen> {
       price: double.parse(_price.text.trim()),
       quantity: int.parse(_quantity.text.trim()),
       category: _category,
-      imageUrl: _imageUrl.text.trim().isNotEmpty ? _imageUrl.text.trim() : 'https://via.placeholder.com/150',
+      imageUrl: _imageUrl.text.trim().isNotEmpty ? _imageUrl.text.trim() : 'https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&q=80&w=400',
       sellerId: sellerId,
       rating: 4.0,
     );
-    provider.addBook(book);
+    await provider.addBook(book, token);
     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Book added successfully!')));
     Navigator.pop(context);
   }

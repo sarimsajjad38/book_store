@@ -10,7 +10,15 @@ router.get('/', async (req, res) => {
     let query = {};
     if (category && category !== 'All') query.category = category;
     if (featured === 'true') query.isFeatured = true;
-    if (search) query.$text = { $search: search };
+    if (search && search.trim().isNotEmpty !== false) {
+      const trimmed = search.trim();
+      query.$or = [
+        { title: { $regex: trimmed, $options: 'i' } },
+        { author: { $regex: trimmed, $options: 'i' } },
+        { category: { $regex: trimmed, $options: 'i' } },
+        { description: { $regex: trimmed, $options: 'i' } },
+      ];
+    }
     const books = await Book.find(query).sort({ createdAt: -1 });
     res.json(books);
   } catch (error) {

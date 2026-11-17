@@ -19,10 +19,13 @@ class BookCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = isDark ? AppColors.accentLight : AppColors.primary;
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 160,
+        width: 156,
         margin: const EdgeInsets.only(right: 16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -31,19 +34,21 @@ class BookCard extends StatelessWidget {
             Hero(
               tag: 'book_${book.id}',
               child: Container(
-                height: 200,
+                height: 196,
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(10),
                   boxShadow: [
                     BoxShadow(
-                      color: Theme.of(context).shadowColor.withValues(alpha: 0.15),
-                      blurRadius: 12,
-                      offset: const Offset(0, 6),
+                      color: isDark
+                          ? Colors.black.withValues(alpha: 0.4)
+                          : const Color(0xFF2C241B).withValues(alpha: 0.14),
+                      blurRadius: 10,
+                      offset: const Offset(0, 5),
                     ),
                   ],
                 ),
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(10),
                   child: CachedNetworkImage(
                     imageUrl: book.imageUrl,
                     fit: BoxFit.cover,
@@ -55,7 +60,11 @@ class BookCard extends StatelessWidget {
                     ),
                     errorWidget: (_, __, ___) => Container(
                       color: Theme.of(context).dividerColor,
-                      child: const Icon(Icons.book, size: 40),
+                      child: Icon(
+                        Icons.book_rounded,
+                        size: 40,
+                        color: Theme.of(context).textTheme.bodySmall?.color,
+                      ),
                     ),
                   ),
                 ),
@@ -65,14 +74,16 @@ class BookCard extends StatelessWidget {
             // Title
             Text(
               book.title,
-              style: const TextStyle(
+              style: TextStyle(
                 fontWeight: FontWeight.w600,
                 fontSize: 13,
+                color: Theme.of(context).textTheme.bodyLarge?.color,
+                height: 1.25,
               ),
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
-            const SizedBox(height: 2),
+            const SizedBox(height: 3),
             // Author
             Text(
               book.author,
@@ -83,27 +94,31 @@ class BookCard extends StatelessWidget {
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 6),
             // Price + Rating
             Row(
               children: [
                 Text(
                   '₹${book.price.toStringAsFixed(0)}',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontWeight: FontWeight.w700,
-                    fontSize: 14,
-                    color: AppColors.primary,
+                    fontSize: 15,
+                    color: primaryColor,
                   ),
                 ),
                 const Spacer(),
-                const Icon(Icons.star_rounded,
-                    color: AppColors.gold, size: 14),
+                const Icon(
+                  Icons.star_rounded,
+                  color: AppColors.gold,
+                  size: 15,
+                ),
                 const SizedBox(width: 2),
                 Text(
                   book.rating.toString(),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 11,
-                    fontWeight: FontWeight.w500,
+                    fontWeight: FontWeight.w600,
+                    color: Theme.of(context).textTheme.bodyMedium?.color,
                   ),
                 ),
               ],
@@ -131,38 +146,67 @@ class BookListCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = isDark ? AppColors.accentLight : AppColors.primary;
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
+          color: Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: Theme.of(context).dividerColor),
+          boxShadow: [
+            BoxShadow(
+              color: isDark
+                  ? Colors.black.withValues(alpha: 0.2)
+                  : const Color(0xFF382F24).withValues(alpha: 0.04),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
         child: Row(
           children: [
             // Book Cover
             Hero(
               tag: 'book_list_${book.id}',
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(10),
-                child: CachedNetworkImage(
-                  imageUrl: book.imageUrl,
-                  width: 70,
-                  height: 100,
-                  fit: BoxFit.cover,
-                  placeholder: (_, __) => Container(
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8),
+                  boxShadow: [
+                    BoxShadow(
+                      color: isDark
+                          ? Colors.black.withValues(alpha: 0.3)
+                          : const Color(0xFF2C241B).withValues(alpha: 0.1),
+                      blurRadius: 6,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: CachedNetworkImage(
+                    imageUrl: book.imageUrl,
                     width: 70,
-                    height: 100,
-                    color: Theme.of(context).dividerColor,
-                  ),
-                  errorWidget: (_, __, ___) => Container(
-                    width: 70,
-                    height: 100,
-                    color: Theme.of(context).dividerColor,
-                    child: const Icon(Icons.book),
+                    height: 98,
+                    fit: BoxFit.cover,
+                    placeholder: (_, __) => Container(
+                      width: 70,
+                      height: 98,
+                      color: Theme.of(context).dividerColor,
+                    ),
+                    errorWidget: (_, __, ___) => Container(
+                      width: 70,
+                      height: 98,
+                      color: Theme.of(context).dividerColor,
+                      child: Icon(
+                        Icons.book_rounded,
+                        color: Theme.of(context).textTheme.bodySmall?.color,
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -175,9 +219,11 @@ class BookListCard extends StatelessWidget {
                 children: [
                   Text(
                     book.title,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontWeight: FontWeight.w600,
-                      fontSize: 15,
+                      fontSize: 14,
+                      color: Theme.of(context).textTheme.bodyLarge?.color,
+                      height: 1.25,
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
@@ -190,21 +236,21 @@ class BookListCard extends StatelessWidget {
                       fontSize: 12,
                     ),
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 8),
                   Row(
                     children: [
                       Text(
                         '₹${book.price.toStringAsFixed(0)}',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontWeight: FontWeight.w700,
                           fontSize: 16,
-                          color: AppColors.primary,
+                          color: primaryColor,
                         ),
                       ),
                       const SizedBox(width: 12),
                       Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 6, vertical: 2),
+                            horizontal: 7, vertical: 2),
                         decoration: BoxDecoration(
                           color: AppColors.gold.withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(6),
@@ -212,8 +258,11 @@ class BookListCard extends StatelessWidget {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(Icons.star_rounded,
-                                color: AppColors.gold, size: 12),
+                            const Icon(
+                              Icons.star_rounded,
+                              color: AppColors.gold,
+                              size: 13,
+                            ),
                             const SizedBox(width: 2),
                             Text(
                               book.rating.toString(),
@@ -236,15 +285,15 @@ class BookListCard extends StatelessWidget {
               IconButton(
                 onPressed: onAddToCart,
                 icon: Container(
-                  padding: const EdgeInsets.all(6),
+                  padding: const EdgeInsets.all(7),
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(8),
+                    color: primaryColor.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.add_shopping_cart_rounded,
-                    color: AppColors.primary,
-                    size: 20,
+                    color: primaryColor,
+                    size: 19,
                   ),
                 ),
               ),

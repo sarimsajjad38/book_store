@@ -100,41 +100,47 @@ class _LoginScreenState extends State<LoginScreen>
                     children: [
                       // Logo
                       Container(
-                        width: 80,
-                        height: 80,
+                        width: 76,
+                        height: 76,
                         decoration: BoxDecoration(
-                          color: Theme.of(context).cardColor.withValues(alpha: 0.15),
+                          color: Colors.white.withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(20),
                           border: Border.all(
-                            color: Theme.of(context).cardColor.withValues(alpha: 0.3),
+                            color: Colors.white.withValues(alpha: 0.22),
                           ),
                         ),
-                        child: Icon(Icons.auto_stories_rounded, color: Theme.of(context).cardColor,
-                          size: 42,
+                        child: const Icon(
+                          Icons.auto_stories_rounded,
+                          color: AppColors.accentLight,
+                          size: 38,
                         ),
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 14),
                       Text(
                         'BookNest',
                         style: GoogleFonts.poppins(
                           fontSize: 28,
                           fontWeight: FontWeight.w800,
-                          color: Theme.of(context).cardColor,
+                          color: Colors.white,
+                          letterSpacing: 0.5,
                         ),
                       ),
-                      const SizedBox(height: 32),
+                      const SizedBox(height: 28),
 
                       // Card
                       Container(
-                        padding: const EdgeInsets.all(28),
+                        padding: const EdgeInsets.all(26),
                         decoration: BoxDecoration(
                           color: Theme.of(context).cardColor,
                           borderRadius: BorderRadius.circular(24),
+                          border: Border.all(
+                            color: Theme.of(context).dividerColor,
+                          ),
                           boxShadow: [
                             BoxShadow(
-                              color: Theme.of(context).shadowColor.withValues(alpha: 0.15),
-                              blurRadius: 30,
-                              offset: const Offset(0, 10),
+                              color: Colors.black.withValues(alpha: 0.25),
+                              blurRadius: 24,
+                              offset: const Offset(0, 8),
                             ),
                           ],
                         ),
@@ -311,7 +317,7 @@ class _LoginScreenState extends State<LoginScreen>
                           Text(
                             "Don't have an account? ",
                             style: GoogleFonts.poppins(
-                              color: Theme.of(context).cardColor.withValues(alpha: 0.7),
+                              color: const Color(0xFFD5CEBF),
                               fontSize: 14,
                             ),
                           ),
@@ -321,11 +327,11 @@ class _LoginScreenState extends State<LoginScreen>
                             child: Text(
                               'Sign Up',
                               style: GoogleFonts.poppins(
-                                color: Theme.of(context).cardColor,
+                                color: AppColors.accentLight,
                                 fontWeight: FontWeight.w700,
                                 fontSize: 14,
                                 decoration: TextDecoration.underline,
-                                decorationColor: Colors.white,
+                                decorationColor: AppColors.accentLight,
                               ),
                             ),
                           ),

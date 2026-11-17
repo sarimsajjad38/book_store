@@ -1,5 +1,6 @@
-package com.example.book_store
+package com.booknest.app
 
 import io.flutter.embedding.android.FlutterActivity
 
 class MainActivity: FlutterActivity()
+

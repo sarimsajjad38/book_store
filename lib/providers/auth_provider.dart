@@ -1,8 +1,10 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'dart:convert';
 import '../models/user.dart';
+import '../services/api_service.dart';
 import '../services/mock_data_service.dart';
+import '../utils/constants.dart';
 
 class AuthProvider extends ChangeNotifier {
   AppUser? _user;
@@ -14,6 +16,7 @@ class AuthProvider extends ChangeNotifier {
   bool get isLoggedIn => _user != null;
   String? get error => _error;
   UserRole? get role => _user?.role;
+  String? get token => _user?.token;
 
   AuthProvider() {
     _loadStoredUser();
@@ -43,39 +46,57 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
 
     try {
-      // Simulate network delay
-      await Future.delayed(const Duration(milliseconds: 800));
-
-      final user = MockDataService.authenticateUser(email, password);
-      if (user != null) {
-        _user = user;
-        await _saveUser(user);
+      // First attempt real API call
+      try {
+        final apiUser = await ApiService.login(email, password);
+        _user = apiUser;
+        await _saveUser(apiUser);
         _isLoading = false;
         notifyListeners();
         return true;
-      } else {
-        _error = 'Invalid email or password';
-        _isLoading = false;
-        notifyListeners();
-        return false;
+      } catch (apiErr) {
+        // If API fails with specific auth message (e.g. invalid credentials)
+        final errMsg = apiErr.toString();
+        if (errMsg.contains('Invalid email or password') ||
+            errMsg.contains('User not found')) {
+          _error = 'Invalid email or password';
+          _isLoading = false;
+          notifyListeners();
+          return false;
+        }
+
+        // If backend server is unreachable and fallback is enabled:
+        if (ApiConstants.enableOfflineMockFallback) {
+          final mockUser = MockDataService.authenticateUser(email, password);
+          if (mockUser != null) {
+            _user = mockUser;
+            await _saveUser(mockUser);
+            _isLoading = false;
+            notifyListeners();
+            return true;
+          }
+        }
+        rethrow;
       }
     } catch (e) {
-      _error = 'Login failed. Please try again.';
+      _error = 'Invalid email or password. Please verify credentials.';
       _isLoading = false;
       notifyListeners();
       return false;
     }
   }
 
-  Future<bool> signUp(String name, String email, String password,
-      {UserRole role = UserRole.customer}) async {
+  Future<bool> signUp(
+    String name,
+    String email,
+    String password, {
+    UserRole role = UserRole.customer,
+  }) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
 
     try {
-      await Future.delayed(const Duration(milliseconds: 800));
-
       if (name.trim().isEmpty) {
         _error = 'Please enter your name';
         _isLoading = false;
@@ -97,23 +118,100 @@ class AuthProvider extends ChangeNotifier {
         return false;
       }
 
-      final user =
-          MockDataService.registerUser(name, email, password, role: role);
-      if (user != null) {
-        _user = user;
-        await _saveUser(user);
+      // Try real API first
+      try {
+        final apiUser = await ApiService.signup(
+          name,
+          email,
+          password,
+          role: role.name,
+        );
+        _user = apiUser;
+        await _saveUser(apiUser);
         _isLoading = false;
         notifyListeners();
         return true;
-      } else {
-        _error = 'Email already exists';
-        _isLoading = false;
-        notifyListeners();
-        return false;
+      } catch (apiErr) {
+        final errMsg = apiErr.toString();
+        if (errMsg.contains('already registered') || errMsg.contains('exists')) {
+          _error = 'Email is already registered';
+          _isLoading = false;
+          notifyListeners();
+          return false;
+        }
+
+        // If offline fallback enabled
+        if (ApiConstants.enableOfflineMockFallback) {
+          final mockUser = MockDataService.registerUser(
+            name,
+            email,
+            password,
+            role: role,
+          );
+          if (mockUser != null) {
+            _user = mockUser;
+            await _saveUser(mockUser);
+            _isLoading = false;
+            notifyListeners();
+            return true;
+          } else {
+            _error = 'Email already exists';
+            _isLoading = false;
+            notifyListeners();
+            return false;
+          }
+        }
+        rethrow;
       }
     } catch (e) {
       _error = 'Sign up failed. Please try again.';
       _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> updateProfile({
+    String? name,
+    String? phone,
+    String? address,
+    String? password,
+  }) async {
+    if (_user == null) return false;
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      if (_user?.token != null && !_user!.token!.startsWith('mock_')) {
+        try {
+          final updated = await ApiService.updateProfile(
+            _user!.token!,
+            name: name,
+            phone: phone,
+            address: address,
+            password: password,
+          );
+          _user = updated.copyWith(token: _user!.token);
+          await _saveUser(_user!);
+          _isLoading = false;
+          notifyListeners();
+          return true;
+        } catch (_) {}
+      }
+
+      // Local / mock fallback update
+      _user = _user!.copyWith(
+        name: name ?? _user!.name,
+        phone: phone ?? _user!.phone,
+        address: address ?? _user!.address,
+      );
+      await _saveUser(_user!);
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _isLoading = false;
+      _error = 'Failed to update profile';
       notifyListeners();
       return false;
     }

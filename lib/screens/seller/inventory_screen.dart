@@ -60,7 +60,7 @@ class InventoryScreen extends StatelessWidget {
                             Text('by ${book.author}', style: GoogleFonts.poppins(fontSize: 12, color: Theme.of(context).textTheme.bodySmall?.color)),
                             const SizedBox(height: 6),
                             Row(children: [
-                              Text('₹${book.price.toStringAsFixed(0)}', style: GoogleFonts.poppins(fontWeight: FontWeight.w700, color: AppColors.primary)),
+                              Text('₹${book.price.toStringAsFixed(0)}', style: GoogleFonts.poppins(fontWeight: FontWeight.w700, color: Theme.of(context).brightness == Brightness.dark ? AppColors.accentLight : AppColors.primary)),
                               const SizedBox(width: 12),
                               Container(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2), decoration: BoxDecoration(color: book.quantity > 0 ? AppColors.success.withValues(alpha: 0.1) : AppColors.error.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(6)),
                                 child: Text('Qty: ${book.quantity}', style: GoogleFonts.poppins(fontSize: 11, fontWeight: FontWeight.w600, color: book.quantity > 0 ? AppColors.success : AppColors.error))),
@@ -73,7 +73,7 @@ class InventoryScreen extends StatelessWidget {
                                 showDialog(context: context, builder: (_) => AlertDialog(
                                   title: const Text('Delete Book'),
                                   content: Text('Remove "${book.title}" from inventory?'),
-                                  actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')), TextButton(onPressed: () { bookProv.deleteBook(book.id); Navigator.pop(context); }, child: const Text('Delete', style: TextStyle(color: AppColors.error)))],
+                                  actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')), TextButton(onPressed: () { bookProv.deleteBook(book.id, auth.user?.token); Navigator.pop(context); }, child: const Text('Delete', style: TextStyle(color: AppColors.error)))],
                                 ));
                               }
                             },

@@ -12,6 +12,8 @@ class OrderStatusTimeline extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final inactiveColor = isDark ? AppColors.surfaceDark : const Color(0xFFE4DCD0);
     final steps = [
       OrderStatus.pending,
       OrderStatus.confirmed,
@@ -38,24 +40,24 @@ class OrderStatusTimeline extends StatelessWidget {
             Column(
               children: [
                 AnimatedContainer(
-                  duration: const Duration(milliseconds: 400),
-                  width: isCurrent ? 28 : 22,
-                  height: isCurrent ? 28 : 22,
+                  duration: const Duration(milliseconds: 300),
+                  width: isCurrent ? 26 : 20,
+                  height: isCurrent ? 26 : 20,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     color: isCompleted
                         ? AppColors.success
-                        : Colors.grey.shade300,
+                        : inactiveColor,
                     border: isCurrent
                         ? Border.all(
-                            color: AppColors.success.withValues(alpha: 0.3),
+                            color: AppColors.success.withValues(alpha: 0.35),
                             width: 3,
                           )
                         : null,
                     boxShadow: isCurrent
                         ? [
                             BoxShadow(
-                              color: AppColors.success.withValues(alpha: 0.3),
+                              color: AppColors.success.withValues(alpha: 0.25),
                               blurRadius: 8,
                               spreadRadius: 2,
                             ),
@@ -63,8 +65,10 @@ class OrderStatusTimeline extends StatelessWidget {
                         : null,
                   ),
                   child: isCompleted
-                      ? Icon(Icons.check, color: Theme.of(context).cardColor,
-                          size: 14,
+                      ? const Icon(
+                          Icons.check,
+                          color: Colors.white,
+                          size: 13,
                         )
                       : null,
                 ),
@@ -74,7 +78,7 @@ class OrderStatusTimeline extends StatelessWidget {
                     height: 36,
                     color: isCompleted && index < currentIndex
                         ? AppColors.success
-                        : Colors.grey.shade300,
+                        : inactiveColor,
                   ),
               ],
             ),
@@ -93,13 +97,13 @@ class OrderStatusTimeline extends StatelessWidget {
                             isCurrent ? FontWeight.w700 : FontWeight.w500,
                         fontSize: isCurrent ? 15 : 14,
                         color: isCompleted
-                            ? AppColors.textPrimary
-                            : AppColors.textMuted,
+                            ? Theme.of(context).textTheme.bodyLarge?.color
+                            : Theme.of(context).textTheme.bodySmall?.color,
                       ),
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      _getStepSubtitle(step),
+                      _getStepSubtitle(step, isCompleted, isCurrent),
                       style: TextStyle(
                         fontSize: 12,
                         color: Theme.of(context).textTheme.bodySmall?.color,
@@ -122,34 +126,22 @@ class OrderStatusTimeline extends StatelessWidget {
       case OrderStatus.confirmed:
         return 'Order Confirmed';
       case OrderStatus.processing:
-        return 'Processing';
+        return 'Packing & Preparing';
       case OrderStatus.shipped:
-        return 'Shipped';
+        return 'In Transit';
       case OrderStatus.outForDelivery:
         return 'Out for Delivery';
       case OrderStatus.delivered:
         return 'Delivered';
       case OrderStatus.cancelled:
-        return 'Cancelled';
+        return 'Order Cancelled';
     }
   }
 
-  String _getStepSubtitle(OrderStatus status) {
-    switch (status) {
-      case OrderStatus.pending:
-        return 'Your order has been placed successfully';
-      case OrderStatus.confirmed:
-        return 'Seller has confirmed your order';
-      case OrderStatus.processing:
-        return 'Your order is being prepared';
-      case OrderStatus.shipped:
-        return 'Your package is on its way';
-      case OrderStatus.outForDelivery:
-        return 'Your package is nearby';
-      case OrderStatus.delivered:
-        return 'Package delivered successfully';
-      case OrderStatus.cancelled:
-        return 'Order has been cancelled';
-    }
+  String _getStepSubtitle(
+      OrderStatus status, bool isCompleted, bool isCurrent) {
+    if (isCurrent) return 'Currently in this stage';
+    if (isCompleted) return 'Completed';
+    return 'Upcoming';
   }
 }

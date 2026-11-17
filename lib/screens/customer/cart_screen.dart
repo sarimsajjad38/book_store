@@ -313,15 +313,20 @@ class CartScreen extends StatelessWidget {
 
   Widget _buildSummaryRow(BuildContext context, String label, String value,
       {bool isBold = false, Color? valueColor}) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = isDark ? AppColors.accentLight : AppColors.primary;
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Text(
           label,
           style: GoogleFonts.poppins(
-            fontSize: isBold ? 16 : 14,
+            fontSize: isBold ? 15 : 13,
             fontWeight: isBold ? FontWeight.w700 : FontWeight.w400,
-            color: isBold ? AppColors.textPrimary : AppColors.textMuted,
+            color: isBold
+                ? Theme.of(context).textTheme.bodyLarge?.color
+                : Theme.of(context).textTheme.bodySmall?.color,
           ),
         ),
         Text(
@@ -330,7 +335,7 @@ class CartScreen extends StatelessWidget {
             fontSize: isBold ? 18 : 14,
             fontWeight: isBold ? FontWeight.w700 : FontWeight.w500,
             color: valueColor ??
-                (isBold ? AppColors.primary : AppColors.textPrimary),
+                (isBold ? primaryColor : Theme.of(context).textTheme.bodyLarge?.color),
           ),
         ),
       ],

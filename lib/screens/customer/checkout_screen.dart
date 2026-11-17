@@ -120,7 +120,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                         style: GoogleFonts.poppins(
                           fontWeight: FontWeight.w700,
                           fontSize: 18,
-                          color: AppColors.primary,
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? AppColors.accentLight
+                              : AppColors.primary,
                         ),
                       ),
                     ],
@@ -197,6 +199,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       cartItems: cart.items,
                       shippingAddress: _addressController.text.trim(),
                       paymentMethod: _paymentMethod,
+                      token: auth.user?.token,
                     );
 
                     if (order != null && mounted) {
@@ -226,31 +229,34 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
   Widget _buildPaymentOption(String label, String value, IconData icon) {
     final isSelected = _paymentMethod == value;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primaryColor = isDark ? AppColors.accentLight : AppColors.primary;
+
     return GestureDetector(
       onTap: () => setState(() => _paymentMethod = value),
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 250),
+        duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: isSelected
-              ? AppColors.primary.withValues(alpha: 0.08)
-              : Colors.white,
+              ? primaryColor.withValues(alpha: 0.08)
+              : Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
-            color: isSelected ? AppColors.primary : Colors.grey.shade300,
-            width: isSelected ? 2 : 1,
+            color: isSelected ? primaryColor : Theme.of(context).dividerColor,
+            width: isSelected ? 1.8 : 1,
           ),
         ),
         child: Row(
           children: [
             Icon(icon,
-                color: isSelected ? AppColors.primary : AppColors.textMuted),
+                color: isSelected ? primaryColor : Theme.of(context).textTheme.bodySmall?.color),
             const SizedBox(width: 14),
             Text(
               label,
               style: GoogleFonts.poppins(
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                color: isSelected ? AppColors.primary : AppColors.textPrimary,
+                color: isSelected ? primaryColor : Theme.of(context).textTheme.bodyMedium?.color,
               ),
             ),
             const Spacer(),
@@ -261,7 +267,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 shape: BoxShape.circle,
                 border: Border.all(
                   color:
-                      isSelected ? AppColors.primary : Colors.grey.shade400,
+                      isSelected ? primaryColor : Theme.of(context).dividerColor,
                   width: 2,
                 ),
               ),
@@ -270,9 +276,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       child: Container(
                         width: 12,
                         height: 12,
-                        decoration: const BoxDecoration(
+                        decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: AppColors.primary,
+                          color: primaryColor,
                         ),
                       ),
                     )

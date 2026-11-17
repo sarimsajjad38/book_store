@@ -49,6 +49,7 @@ class AppUser {
       'phone': phone,
       'address': address,
       'createdAt': createdAt.toIso8601String(),
+      'token': token,
     };
   }
 

@@ -1,0 +1,59 @@
+name: Build & Verify BookNest
+
+on:
+  push:
+    branches: [ master, main ]
+  pull_request:
+    branches: [ master, main ]
+
+jobs:
+  backend-test:
+    name: Backend Lint & Node Verification
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+      - name: Install Dependencies
+        run: |
+          cd backend
+          npm ci
+      - name: Syntax Check Server & Routes
+        run: |
+          cd backend
+          node --check server.js
+          node --check routes/auth.js
+          node --check routes/books.js
+          node --check routes/orders.js
+          node --check routes/recommendations.js
+
+  flutter-build:
+    name: Flutter Analyze & Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+      - name: Get Dependencies
+        run: flutter pub get
+      - name: Analyze Project
+        run: flutter analyze
+      - name: Run Widget Tests
+        run: flutter test
+      - name: Build Web Release
+        run: flutter build web --release
+      - name: Build Android APK
+        run: flutter build apk --release
+

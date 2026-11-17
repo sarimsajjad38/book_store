@@ -1,10 +1,13 @@
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 const dotenv = require('dotenv');
-const connectDB = require('./config/db');
 
-// Load env vars
+// Load env vars from backend/.env first, then root .env fallback
+dotenv.config({ path: path.resolve(__dirname, '.env') });
 dotenv.config();
+
+const connectDB = require('./config/db');
 
 // Connect to MongoDB
 connectDB();
@@ -12,7 +15,23 @@ connectDB();
 const app = express();
 
 // Middleware
-app.use(cors());
+const allowedOrigins = process.env.CLIENT_ORIGINS
+  ? process.env.CLIENT_ORIGINS.split(',')
+  : ['*'];
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes('*') || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Blocked by CORS policy'));
+      }
+    },
+    credentials: true,
+  })
+);
+
 app.use(express.json());
 
 // Routes
@@ -36,7 +55,9 @@ app.get('/api/admin/stats', protect, authorize('admin'), async (req, res) => {
       Order.aggregate([{ $group: { _id: null, total: { $sum: '$totalAmount' } } }]),
     ]);
     res.json({
-      totalBooks, totalUsers, totalOrders,
+      totalBooks,
+      totalUsers,
+      totalOrders,
       totalRevenue: revenueResult[0]?.total || 0,
       pendingOrders: await Order.countDocuments({ status: 'pending' }),
       deliveredOrders: await Order.countDocuments({ status: 'delivered' }),
@@ -55,9 +76,48 @@ app.get('/api/admin/users', protect, authorize('admin'), async (req, res) => {
   }
 });
 
-// Health check
-app.get('/api/health', (req, res) => res.json({ status: 'ok', timestamp: new Date().toISOString() }));
+// Health check endpoints (for cloud load balancers & monitoring)
+const healthHandler = (req, res) =>
+  res.json({
+    status: 'ok',
+    service: 'BookNest API',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+  });
 
-// Start server
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`🚀 BookNest API running on port ${PORT}`));
+app.get('/health', healthHandler);
+app.get('/api/health', healthHandler);
+
+// 404 Handler
+app.use((req, res) => {
+  res.status(404).json({ message: `Route ${req.originalUrl} not found` });
+});
+
+// Global Error Handler
+app.use((err, req, res, next) => {
+  const statusCode = res.statusCode === 200 ? 500 : res.statusCode;
+  res.status(statusCode).json({
+    message: err.message || 'Internal Server Error',
+    stack: process.env.NODE_ENV === 'production' ? undefined : err.stack,
+  });
+});
+
+// Start server with automatic port-conflict fallback
+const DEFAULT_PORT = parseInt(process.env.PORT, 10) || 5001;
+
+function startServer(port, maxAttempts = 5, currentAttempt = 0) {
+  const server = app.listen(port, () => {
+    console.log(`🚀 BookNest API running on port ${port}`);
+  });
+
+  server.on('error', (err) => {
+    if (err.code === 'EADDRINUSE' && currentAttempt < maxAttempts) {
+      console.warn(`⚠️  Port ${port} is in use. Attempting next port ${port + 1}...`);
+      startServer(port + 1, maxAttempts, currentAttempt + 1);
+    } else {
+      console.error('❌ Server startup error:', err.message);
+    }
+  });
+}
+
+startServer(DEFAULT_PORT);

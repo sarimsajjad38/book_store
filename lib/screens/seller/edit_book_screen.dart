@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../models/book.dart';
+import '../../providers/auth_provider.dart';
 import '../../providers/book_provider.dart';
 import '../../utils/constants.dart';
 import '../../widgets/gradient_button.dart';
@@ -46,7 +47,8 @@ class _EditBookScreenState extends State<EditBookScreen> {
       quantity: int.tryParse(_quantity.text.trim()) ?? widget.book.quantity,
       description: _description.text.trim(), imageUrl: _imageUrl.text.trim(), category: _category,
     );
-    provider.updateBook(updated);
+    final token = context.read<AuthProvider>().user?.token;
+    await provider.updateBook(updated, token);
     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Book updated!')));
     Navigator.pop(context);
   }

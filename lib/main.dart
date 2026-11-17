@@ -14,6 +14,7 @@ import 'screens/seller/seller_main_screen.dart';
 import 'screens/admin/admin_main_screen.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(const BookNestApp());
 }
 

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import '../../providers/auth_provider.dart';
 import '../../providers/order_provider.dart';
 import '../../models/order.dart';
 import '../../utils/app_theme.dart';
@@ -20,6 +21,7 @@ class OrderListScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final token = context.watch<AuthProvider>().user?.token;
     return Scaffold(
       body: SafeArea(
         child: Column(
@@ -69,14 +71,33 @@ class OrderListScreen extends StatelessWidget {
                             scrollDirection: Axis.horizontal,
                             child: Row(children: OrderStatus.values.where((s) => s != OrderStatus.cancelled).map((s) {
                               final isActive = order.status == s;
+                              final isDark = Theme.of(context).brightness == Brightness.dark;
+                              final activeColor = isDark ? AppColors.accentLight : AppColors.primary;
                               return Padding(
                                 padding: const EdgeInsets.only(right: 6),
                                 child: GestureDetector(
-                                  onTap: isActive ? null : () => orderProv.updateOrderStatus(order.id, s),
+                                  onTap: isActive ? null : () => orderProv.updateOrderStatus(order.id, s, token),
                                   child: Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                                    decoration: BoxDecoration(color: isActive ? AppColors.primary : Colors.grey.shade100, borderRadius: BorderRadius.circular(8)),
-                                    child: Text(s.name[0].toUpperCase() + s.name.substring(1), style: GoogleFonts.poppins(fontSize: 10, fontWeight: FontWeight.w500, color: isActive ? Colors.white : AppColors.textMuted)),
+                                    decoration: BoxDecoration(
+                                      color: isActive
+                                          ? activeColor
+                                          : (isDark ? AppColors.surfaceDark : const Color(0xFFF0EAE1)),
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(
+                                        color: isActive ? activeColor : Theme.of(context).dividerColor,
+                                      ),
+                                    ),
+                                    child: Text(
+                                      s.name[0].toUpperCase() + s.name.substring(1),
+                                      style: GoogleFonts.poppins(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w600,
+                                        color: isActive
+                                            ? (isDark ? const Color(0xFF1E1B18) : Colors.white)
+                                            : Theme.of(context).textTheme.bodySmall?.color,
+                                      ),
+                                    ),
                                   ),
                                 ),
                               );

@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 import '../models/book.dart';
 import '../models/cart_item.dart';
@@ -18,6 +20,33 @@ class CartProvider extends ChangeNotifier {
   double get deliveryCharge => totalAmount > 500 ? 0 : 40;
   double get finalAmount => totalAmount + deliveryCharge;
 
+  CartProvider() {
+    _loadCart();
+  }
+
+  Future<void> _loadCart() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final cartData = prefs.getString('cart_items');
+      if (cartData != null) {
+        final List<dynamic> list = json.decode(cartData);
+        _items.clear();
+        for (final item in list) {
+          _items.add(CartItem.fromJson(item));
+        }
+        notifyListeners();
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _saveCart() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final cartData = json.encode(_items.map((i) => i.toJson()).toList());
+      await prefs.setString('cart_items', cartData);
+    } catch (_) {}
+  }
+
   bool isInCart(String bookId) {
     return _items.any((item) => item.book.id == bookId);
   }
@@ -34,11 +63,13 @@ class CartProvider extends ChangeNotifier {
         quantity: quantity,
       ));
     }
+    _saveCart();
     notifyListeners();
   }
 
   void removeFromCart(String bookId) {
     _items.removeWhere((item) => item.book.id == bookId);
+    _saveCart();
     notifyListeners();
   }
 
@@ -50,6 +81,7 @@ class CartProvider extends ChangeNotifier {
     final index = _items.indexWhere((item) => item.book.id == bookId);
     if (index >= 0) {
       _items[index].quantity = quantity;
+      _saveCart();
       notifyListeners();
     }
   }
@@ -58,6 +90,7 @@ class CartProvider extends ChangeNotifier {
     final index = _items.indexWhere((item) => item.book.id == bookId);
     if (index >= 0) {
       _items[index].quantity++;
+      _saveCart();
       notifyListeners();
     }
   }
@@ -70,12 +103,14 @@ class CartProvider extends ChangeNotifier {
       } else {
         _items.removeAt(index);
       }
+      _saveCart();
       notifyListeners();
     }
   }
 
   void clearCart() {
     _items.clear();
+    _saveCart();
     notifyListeners();
   }
 }

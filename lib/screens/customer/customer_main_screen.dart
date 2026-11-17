@@ -14,11 +14,11 @@ class CustomerMainScreen extends StatefulWidget {
 class _CustomerMainScreenState extends State<CustomerMainScreen> {
   int _currentIndex = 0;
 
-  final List<Widget> _screens = const [
-    CustomerHomeScreen(),
-    SearchScreen(),
-    OrderHistoryScreen(),
-    ProfileScreen(),
+  late final List<Widget> _screens = [
+    CustomerHomeScreen(onSearchTap: () => setState(() => _currentIndex = 1)),
+    const SearchScreen(),
+    const OrderHistoryScreen(),
+    const ProfileScreen(),
   ];
 
   @override

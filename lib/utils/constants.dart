@@ -1,6 +1,20 @@
+import 'package:flutter/foundation.dart';
+
 class ApiConstants {
-  static const String baseUrl = 'http://10.0.2.2:5000/api'; // Android emulator
-  static const String localUrl = 'http://localhost:5000/api'; // Web/iOS
+  /// Base API URL dynamically resolved based on current platform
+  static String get baseUrl {
+    if (kIsWeb) {
+      return 'http://localhost:5001/api';
+    }
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      return 'http://10.0.2.2:5001/api';
+    }
+    return 'http://localhost:5001/api';
+  }
+
+  /// Toggle whether the app automatically falls back to local Mock data
+  /// if the backend server is unreachable
+  static bool enableOfflineMockFallback = true;
 
   // Auth endpoints
   static const String login = '/auth/login';
@@ -9,9 +23,9 @@ class ApiConstants {
 
   // Book endpoints
   static const String books = '/books';
-  static const String featuredBooks = '/books/featured';
-  static const String searchBooks = '/books/search';
-  static const String booksByCategory = '/books/category';
+  static const String featuredBooks = '/books?featured=true';
+  static const String searchBooks = '/books';
+  static const String booksByCategory = '/books';
 
   // Order endpoints
   static const String orders = '/orders';
