@@ -88,20 +88,27 @@ class _SplashScreenState extends State<SplashScreen>
               children: [
                 // Logo
                 Container(
-                  width: 96,
-                  height: 96,
+                  width: 110,
+                  height: 110,
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(24),
-                    border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.22),
-                      width: 1.5,
-                    ),
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.25),
+                        blurRadius: 20,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
                   ),
-                  child: const Icon(
-                    Icons.auto_stories_rounded,
-                    color: AppColors.accentLight,
-                    size: 48,
+                  child: ClipOval(
+                    child: Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Image.asset(
+                        'assets/images/logo.png',
+                        fit: BoxFit.contain,
+                      ),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 24),

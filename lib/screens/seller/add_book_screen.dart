@@ -52,6 +52,7 @@ class _AddBookScreenState extends State<AddBookScreen> {
       rating: 4.0,
     );
     await provider.addBook(book, token);
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Book added successfully!')));
     Navigator.pop(context);
   }

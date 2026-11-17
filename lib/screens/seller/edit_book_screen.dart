@@ -49,6 +49,7 @@ class _EditBookScreenState extends State<EditBookScreen> {
     );
     final token = context.read<AuthProvider>().user?.token;
     await provider.updateBook(updated, token);
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Book updated!')));
     Navigator.pop(context);
   }
