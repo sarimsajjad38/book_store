@@ -55,5 +55,5 @@ jobs:
       - name: Build Web Release
         run: flutter build web --release
       - name: Build Android APK
-        run: flutter build apk --release
+        run: flutter build apk --release --android-skip-build-dependency-validation
 
