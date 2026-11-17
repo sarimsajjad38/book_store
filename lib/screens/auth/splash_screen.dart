@@ -1,4 +1,5 @@
-﻿import 'package:flutter/material.dart';
+﻿import 'dart:async';
+import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
@@ -18,6 +19,7 @@ class _SplashScreenState extends State<SplashScreen>
   late AnimationController _scaleController;
   late Animation<double> _fadeAnimation;
   late Animation<double> _scaleAnimation;
+  Timer? _timer;
 
   @override
   void initState() {
@@ -41,7 +43,7 @@ class _SplashScreenState extends State<SplashScreen>
     _fadeController.forward();
     _scaleController.forward();
 
-    Future.delayed(const Duration(seconds: 2), () {
+    _timer = Timer(const Duration(seconds: 2), () {
       if (mounted) {
         final auth = context.read<AuthProvider>();
         if (auth.isLoggedIn && auth.role != null) {
@@ -65,6 +67,7 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   void dispose() {
+    _timer?.cancel();
     _fadeController.dispose();
     _scaleController.dispose();
     super.dispose();
