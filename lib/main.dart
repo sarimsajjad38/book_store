@@ -1,10 +1,15 @@
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'firebase_options.dart';
 import 'providers/auth_provider.dart';
 import 'providers/book_provider.dart';
 import 'providers/cart_provider.dart';
 import 'providers/order_provider.dart';
 import 'providers/theme_provider.dart';
+import 'services/notification_service.dart';
 import 'utils/app_theme.dart';
 import 'screens/auth/splash_screen.dart';
 import 'screens/auth/login_screen.dart';
@@ -13,8 +18,19 @@ import 'screens/customer/customer_main_screen.dart';
 import 'screens/seller/seller_main_screen.dart';
 import 'screens/admin/admin_main_screen.dart';
 
-void main() {
+void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+    await NotificationService.initialize();
+  } catch (e) {
+    if (kDebugMode) {
+      print('ℹ️ Running without active Firebase platform config: $e');
+    }
+  }
   runApp(const BookNestApp());
 }
 
