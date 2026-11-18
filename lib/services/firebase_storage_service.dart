@@ -11,6 +11,11 @@ class FirebaseStorageService {
   /// and returns the public HTTPS download URL.
   static Future<String> uploadBookCover(File imageFile, {String? sellerId}) async {
     try {
+      if (!await imageFile.exists()) {
+        throw Exception('Selected image file does not exist locally.');
+      }
+
+      final bytes = await imageFile.readAsBytes();
       final fileName = '${_uuid.v4()}.jpg';
       final path = 'book_covers/${sellerId ?? 'general'}/$fileName';
       final ref = _storage.ref().child(path);
@@ -23,7 +28,8 @@ class FirebaseStorageService {
         },
       );
 
-      final uploadTask = ref.putFile(imageFile, metadata);
+      // Use putData with in-memory bytes to avoid Android scoped storage permission locks
+      final uploadTask = ref.putData(bytes, metadata);
       final snapshot = await uploadTask;
       final downloadUrl = await snapshot.ref.getDownloadURL();
 
@@ -35,6 +41,17 @@ class FirebaseStorageService {
     } on FirebaseException catch (e) {
       if (kDebugMode) {
         print('❌ Firebase Storage Error: ${e.code} - ${e.message}');
+      }
+      if (e.code == 'object-not-found') {
+        throw Exception(
+          'Firebase Storage is not enabled or Security Rules blocked access. '
+          'Please enable Storage in Firebase Console and set Rules to allow read/write.',
+        );
+      }
+      if (e.code == 'unauthorized' || e.code == 'permission-denied') {
+        throw Exception(
+          'Permission denied by Firebase Storage Rules. Please allow read/write in Firebase Console -> Storage -> Rules.',
+        );
       }
       throw Exception('Failed to upload image: ${e.message ?? e.code}');
     } catch (e) {
