@@ -117,6 +117,12 @@ class ApiService {
     }
   }
 
+  static Future<bool> deleteAccount(String token) async {
+    final url = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.deleteAccount}');
+    final res = await http.delete(url, headers: _headers(token)).timeout(_timeout);
+    return res.statusCode == 200;
+  }
+
   // --- BOOKS ---
   static Future<List<Book>> getBooks({
     String? category,

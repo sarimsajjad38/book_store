@@ -65,4 +65,15 @@ router.put('/profile', protect, async (req, res) => {
   }
 });
 
+// DELETE /api/auth/account - Delete user account (App Store & Google Play compliance)
+router.delete('/account', protect, async (req, res) => {
+  try {
+    const userId = req.user._id;
+    await User.findByIdAndDelete(userId);
+    res.json({ success: true, message: 'Account and associated personal data deleted successfully' });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 module.exports = router;

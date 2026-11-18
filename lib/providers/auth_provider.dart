@@ -217,6 +217,34 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
+  Future<bool> deleteAccount() async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      if (_user?.token != null && _user!.token!.isNotEmpty) {
+        try {
+          await ApiService.deleteAccount(_user!.token!);
+        } catch (_) {
+          // If server call fails, proceed to clean up locally
+        }
+      }
+
+      _user = null;
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('user_data');
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _isLoading = false;
+      _error = 'Failed to delete account';
+      notifyListeners();
+      return false;
+    }
+  }
+
   Future<void> logout() async {
     _user = null;
     final prefs = await SharedPreferences.getInstance();

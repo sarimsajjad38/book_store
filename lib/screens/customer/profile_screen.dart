@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
@@ -177,6 +177,114 @@ class ProfileScreen extends StatelessWidget {
     );
   }
 
+  void _showPrivacyPolicyDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(
+          'Privacy Policy & Terms',
+          style: GoogleFonts.poppins(fontWeight: FontWeight.w700),
+        ),
+        content: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Data Collection & Privacy',
+                style: GoogleFonts.poppins(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 14,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                'BookNest values your privacy. We collect your name, email, and shipping address strictly to fulfill and track your book orders. We never sell or share your personal data with third-party advertisers.',
+                style: GoogleFonts.poppins(fontSize: 13),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'Account & Data Deletion',
+                style: GoogleFonts.poppins(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 14,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                'You have the full right to delete your account and personal data at any time directly through the "Delete Account" button in your profile settings.',
+                style: GoogleFonts.poppins(fontSize: 13),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showDeleteAccountDialog(BuildContext context, AuthProvider auth) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(
+          'Delete Account',
+          style: GoogleFonts.poppins(
+            fontWeight: FontWeight.w700,
+            color: AppColors.error,
+          ),
+        ),
+        content: Text(
+          'Are you sure you want to permanently delete your account? This action cannot be undone. All your orders, addresses, and saved items will be permanently erased.',
+          style: GoogleFonts.poppins(fontSize: 14),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.error,
+              foregroundColor: Colors.white,
+            ),
+            onPressed: () async {
+              Navigator.pop(ctx);
+              final success = await auth.deleteAccount();
+              if (context.mounted) {
+                if (success) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Your account has been deleted successfully.'),
+                    ),
+                  );
+                  Navigator.pushNamedAndRemoveUntil(
+                    context,
+                    '/login',
+                    (_) => false,
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(auth.error ?? 'Failed to delete account'),
+                      backgroundColor: AppColors.error,
+                    ),
+                  );
+                }
+              }
+            },
+            child: const Text('Delete Forever'),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final themeProvider = context.watch<ThemeProvider>();
@@ -335,6 +443,19 @@ class ProfileScreen extends StatelessWidget {
                       );
                     },
                   ),
+                  _buildMenuItem(
+                    context,
+                    Icons.privacy_tip_outlined,
+                    'Privacy Policy & Terms',
+                    () => _showPrivacyPolicyDialog(context),
+                  ),
+                  _buildMenuItem(
+                    context,
+                    Icons.delete_forever_outlined,
+                    'Delete Account',
+                    () => _showDeleteAccountDialog(context, auth),
+                    isDestructive: true,
+                  ),
                   const SizedBox(height: 24),
 
                   // Logout
@@ -391,10 +512,13 @@ class ProfileScreen extends StatelessWidget {
     BuildContext context,
     IconData icon,
     String title,
-    VoidCallback onTap,
-  ) {
+    VoidCallback onTap, {
+    bool isDestructive = false,
+  }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final primaryColor = isDark ? AppColors.accentLight : AppColors.primary;
+    final primaryColor = isDestructive
+        ? AppColors.error
+        : (isDark ? AppColors.accentLight : AppColors.primary);
 
     return GestureDetector(
       onTap: onTap,
@@ -404,7 +528,11 @@ class ProfileScreen extends StatelessWidget {
         decoration: BoxDecoration(
           color: Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: Theme.of(context).dividerColor),
+          border: Border.all(
+            color: isDestructive
+                ? AppColors.error.withOpacity(0.3)
+                : Theme.of(context).dividerColor,
+          ),
         ),
         child: Row(
           children: [
@@ -423,12 +551,15 @@ class ProfileScreen extends StatelessWidget {
                 style: GoogleFonts.poppins(
                   fontSize: 15,
                   fontWeight: FontWeight.w500,
+                  color: isDestructive ? AppColors.error : null,
                 ),
               ),
             ),
             Icon(
               Icons.chevron_right_rounded,
-              color: Theme.of(context).textTheme.bodySmall?.color,
+              color: isDestructive
+                  ? AppColors.error
+                  : Theme.of(context).textTheme.bodySmall?.color,
             ),
           ],
         ),

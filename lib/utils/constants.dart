@@ -20,6 +20,7 @@ class ApiConstants {
   static const String login = '/auth/login';
   static const String signup = '/auth/signup';
   static const String profile = '/auth/profile';
+  static const String deleteAccount = '/auth/account';
 
   // Book endpoints
   static const String books = '/books';
