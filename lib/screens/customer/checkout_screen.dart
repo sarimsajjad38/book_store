@@ -1,9 +1,12 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:razorpay_flutter/razorpay_flutter.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/cart_provider.dart';
 import '../../providers/order_provider.dart';
+import '../../services/api_service.dart';
 import '../../utils/app_theme.dart';
 import '../../widgets/gradient_button.dart';
 
@@ -18,25 +21,210 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   final _addressController = TextEditingController();
   String _paymentMethod = 'COD';
   bool _orderPlaced = false;
+  bool _isProcessingPayment = false;
+  Razorpay? _razorpay;
 
   @override
   void initState() {
     super.initState();
     final user = context.read<AuthProvider>().user;
     _addressController.text = user?.address ?? '';
+
+    if (!kIsWeb) {
+      _razorpay = Razorpay();
+      _razorpay!.on(Razorpay.EVENT_PAYMENT_SUCCESS, _handlePaymentSuccess);
+      _razorpay!.on(Razorpay.EVENT_PAYMENT_ERROR, _handlePaymentError);
+      _razorpay!.on(Razorpay.EVENT_EXTERNAL_WALLET, _handleExternalWallet);
+    }
   }
 
   @override
   void dispose() {
     _addressController.dispose();
+    _razorpay?.clear();
     super.dispose();
+  }
+
+  void _handlePaymentSuccess(PaymentSuccessResponse response) async {
+    if (!mounted) return;
+    final cart = context.read<CartProvider>();
+    final auth = context.read<AuthProvider>();
+    final orderProvider = context.read<OrderProvider>();
+
+    setState(() => _isProcessingPayment = true);
+
+    try {
+      final order = await orderProvider.placeOrder(
+        userId: auth.user!.id,
+        userName: auth.user!.name,
+        cartItems: cart.items,
+        shippingAddress: _addressController.text.trim(),
+        paymentMethod: _paymentMethod,
+        token: auth.user?.token,
+        razorpayPaymentId: response.paymentId,
+        razorpayOrderId: response.orderId,
+        razorpaySignature: response.signature,
+      );
+
+      if (order != null && mounted) {
+        cart.clearCart();
+        setState(() {
+          _orderPlaced = true;
+          _isProcessingPayment = false;
+        });
+      } else if (mounted) {
+        setState(() => _isProcessingPayment = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(orderProvider.error ?? 'Failed to finalize order on server.'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isProcessingPayment = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Payment verification error: $e'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    }
+  }
+
+  void _handlePaymentError(PaymentFailureResponse response) {
+    if (!mounted) return;
+    setState(() => _isProcessingPayment = false);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Payment cancelled or failed: ${response.message ?? "Transaction declined."}'),
+        backgroundColor: AppColors.error,
+      ),
+    );
+  }
+
+  void _handleExternalWallet(ExternalWalletResponse response) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text('Redirected to external wallet: ${response.walletName}'),
+      ),
+    );
+  }
+
+  Future<void> _handlePlaceOrder(
+    CartProvider cart,
+    AuthProvider auth,
+    OrderProvider orderProvider,
+  ) async {
+    if (_addressController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please enter shipping address'),
+        ),
+      );
+      return;
+    }
+
+    if (auth.user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please sign in to place an order'),
+        ),
+      );
+      return;
+    }
+
+    // Cash on Delivery flow
+    if (_paymentMethod == 'COD') {
+      final order = await orderProvider.placeOrder(
+        userId: auth.user!.id,
+        userName: auth.user!.name,
+        cartItems: cart.items,
+        shippingAddress: _addressController.text.trim(),
+        paymentMethod: 'COD',
+        token: auth.user?.token,
+      );
+
+      if (order != null && mounted) {
+        cart.clearCart();
+        setState(() => _orderPlaced = true);
+      }
+      return;
+    }
+
+    // Online Payment Flow (Razorpay)
+    setState(() => _isProcessingPayment = true);
+
+    try {
+      final rzOrder = await ApiService.createRazorpayOrder(
+        amount: cart.finalAmount,
+        token: auth.user?.token,
+      );
+
+      final keyId = rzOrder['keyId'] as String? ?? 'rzp_test_1DP5mmOlF5G5ag';
+      final orderId = rzOrder['orderId'] as String?;
+
+      if (kIsWeb || _razorpay == null) {
+        // Fallback for Web preview / test environment
+        final order = await orderProvider.placeOrder(
+          userId: auth.user!.id,
+          userName: auth.user!.name,
+          cartItems: cart.items,
+          shippingAddress: _addressController.text.trim(),
+          paymentMethod: _paymentMethod,
+          token: auth.user?.token,
+          razorpayPaymentId: 'pay_web_${DateTime.now().millisecondsSinceEpoch}',
+          razorpayOrderId: orderId,
+        );
+
+        if (order != null && mounted) {
+          cart.clearCart();
+          setState(() {
+            _orderPlaced = true;
+            _isProcessingPayment = false;
+          });
+        }
+        return;
+      }
+
+      final options = {
+        'key': keyId,
+        'amount': (cart.finalAmount * 100).toInt(),
+        'name': 'BookNest',
+        'description': 'Purchase of ${cart.itemCount} book(s)',
+        'order_id': orderId,
+        'timeout': 300,
+        'prefill': {
+          'contact': auth.user?.phone ?? '9999999999',
+          'email': auth.user?.email ?? 'customer@booknest.com',
+          'name': auth.user?.name ?? 'Valued Customer',
+        },
+        'theme': {
+          'color': '#1F2E3D',
+        },
+      };
+
+      _razorpay!.open(options);
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isProcessingPayment = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Payment gateway error: $e'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final cart = context.watch<CartProvider>();
     final auth = context.watch<AuthProvider>();
-    final orderProvider = context.read<OrderProvider>();
 
     if (_orderPlaced) {
       return _buildOrderSuccessScreen(context);
@@ -181,32 +369,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               builder: (_, orderProv, __) {
                 return GradientButton(
                   text: 'Place Order  •  ₹${cart.finalAmount.toStringAsFixed(0)}',
-                  isLoading: orderProv.isLoading,
+                  isLoading: orderProv.isLoading || _isProcessingPayment,
                   icon: Icons.check_circle_outline_rounded,
-                  onPressed: () async {
-                    if (_addressController.text.trim().isEmpty) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Please enter shipping address'),
-                        ),
-                      );
-                      return;
-                    }
-
-                    final order = await orderProvider.placeOrder(
-                      userId: auth.user!.id,
-                      userName: auth.user!.name,
-                      cartItems: cart.items,
-                      shippingAddress: _addressController.text.trim(),
-                      paymentMethod: _paymentMethod,
-                      token: auth.user?.token,
-                    );
-
-                    if (order != null && mounted) {
-                      cart.clearCart();
-                      setState(() => _orderPlaced = true);
-                    }
-                  },
+                  onPressed: () => _handlePlaceOrder(cart, auth, orderProv),
                 );
               },
             ),

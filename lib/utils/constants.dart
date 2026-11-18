@@ -31,6 +31,7 @@ class ApiConstants {
 
   // Order endpoints
   static const String orders = '/orders';
+  static const String createRazorpayOrder = '/orders/create-razorpay-order';
   static const String myOrders = '/orders/my';
   static const String sellerOrders = '/orders/seller';
 

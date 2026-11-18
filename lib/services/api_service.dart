@@ -266,11 +266,35 @@ class ApiService {
   }
 
   // --- ORDERS ---
+  static Future<Map<String, dynamic>> createRazorpayOrder({
+    required double amount,
+    String? token,
+  }) async {
+    final url = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.createRazorpayOrder}');
+    final res = await http
+        .post(
+          url,
+          headers: _headers(token),
+          body: json.encode({'amount': amount}),
+        )
+        .timeout(_timeout);
+
+    final data = json.decode(res.body);
+    if (res.statusCode == 200 || res.statusCode == 201) {
+      return Map<String, dynamic>.from(data);
+    } else {
+      throw Exception(data['message'] ?? 'Failed to initialize payment');
+    }
+  }
+
   static Future<Order> placeOrder({
     required String token,
     required List<CartItem> cartItems,
     required String shippingAddress,
     String paymentMethod = 'COD',
+    String? razorpayPaymentId,
+    String? razorpayOrderId,
+    String? razorpaySignature,
   }) async {
     final url = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.orders}');
     final itemsPayload = cartItems
@@ -284,15 +308,20 @@ class ApiService {
             })
         .toList();
 
+    final body = <String, dynamic>{
+      'items': itemsPayload,
+      'shippingAddress': shippingAddress,
+      'paymentMethod': paymentMethod,
+    };
+    if (razorpayPaymentId != null) body['razorpayPaymentId'] = razorpayPaymentId;
+    if (razorpayOrderId != null) body['razorpayOrderId'] = razorpayOrderId;
+    if (razorpaySignature != null) body['razorpaySignature'] = razorpaySignature;
+
     final res = await http
         .post(
           url,
           headers: _headers(token),
-          body: json.encode({
-            'items': itemsPayload,
-            'shippingAddress': shippingAddress,
-            'paymentMethod': paymentMethod,
-          }),
+          body: json.encode(body),
         )
         .timeout(_timeout);
 

@@ -15,6 +15,10 @@ const orderSchema = new mongoose.Schema({
   status: { type: String, enum: ['pending','confirmed','processing','shipped','outForDelivery','delivered','cancelled'], default: 'pending' },
   shippingAddress: { type: String, required: true },
   paymentMethod: { type: String, default: 'COD' },
+  paymentStatus: { type: String, enum: ['unpaid', 'paid', 'refunded'], default: 'unpaid' },
+  razorpayPaymentId: { type: String, default: '' },
+  razorpayOrderId: { type: String, default: '' },
+  razorpaySignature: { type: String, default: '' },
   trackingId: { type: String, default: '' },
   deliveredAt: { type: Date },
 }, { timestamps: true });

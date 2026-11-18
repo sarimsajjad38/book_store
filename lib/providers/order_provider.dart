@@ -110,6 +110,9 @@ class OrderProvider extends ChangeNotifier {
     required String shippingAddress,
     String paymentMethod = 'COD',
     String? token,
+    String? razorpayPaymentId,
+    String? razorpayOrderId,
+    String? razorpaySignature,
   }) async {
     _isLoading = true;
     _error = null;
@@ -123,6 +126,9 @@ class OrderProvider extends ChangeNotifier {
             cartItems: cartItems,
             shippingAddress: shippingAddress,
             paymentMethod: paymentMethod,
+            razorpayPaymentId: razorpayPaymentId,
+            razorpayOrderId: razorpayOrderId,
+            razorpaySignature: razorpaySignature,
           );
           _orders.insert(0, order);
           _isLoading = false;

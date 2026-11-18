@@ -1,17 +1,85 @@
 const express = require('express');
+const https = require('https');
 const Order = require('../models/Order');
 const Book = require('../models/Book');
 const { protect, authorize } = require('../middleware/auth');
 const router = express.Router();
 
+// POST /api/orders/create-razorpay-order
+router.post('/create-razorpay-order', protect, async (req, res) => {
+  try {
+    const { amount } = req.body;
+    if (!amount || amount <= 0) {
+      return res.status(400).json({ message: 'Valid amount is required' });
+    }
+
+    const keyId = process.env.RAZORPAY_KEY_ID || 'rzp_test_booknest2026';
+    const keySecret = process.env.RAZORPAY_KEY_SECRET;
+    const amountInPaise = Math.round(amount * 100);
+
+    // If live credentials are provided in .env, call Razorpay API
+    if (keySecret) {
+      const auth = Buffer.from(`${keyId}:${keySecret}`).toString('base64');
+      const postData = JSON.stringify({
+        amount: amountInPaise,
+        currency: 'INR',
+        receipt: `rcpt_${Date.now()}`,
+      });
+
+      const options = {
+        hostname: 'api.razorpay.com',
+        port: 443,
+        path: '/v1/orders',
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Basic ${auth}`,
+          'Content-Length': Buffer.byteLength(postData),
+        },
+      };
+
+      const request = https.request(options, (response) => {
+        let data = '';
+        response.on('data', (chunk) => (data += chunk));
+        response.on('end', () => {
+          try {
+            const parsed = JSON.parse(data);
+            if (response.statusCode >= 200 && response.statusCode < 300) {
+              return res.json({ orderId: parsed.id, keyId, amount: amountInPaise });
+            } else {
+              return res.status(response.statusCode).json({ message: parsed.error?.description || 'Razorpay order creation failed' });
+            }
+          } catch (_) {
+            return res.status(500).json({ message: 'Failed to parse Razorpay response' });
+          }
+        });
+      });
+
+      request.on('error', (err) => res.status(500).json({ message: err.message }));
+      request.write(postData);
+      request.end();
+    } else {
+      // Test / development mode
+      res.json({
+        orderId: `order_test_${Date.now()}`,
+        keyId,
+        amount: amountInPaise,
+      });
+    }
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 // POST /api/orders - Place order
 router.post('/', protect, async (req, res) => {
   try {
-    const { items, shippingAddress, paymentMethod } = req.body;
+    const { items, shippingAddress, paymentMethod, razorpayPaymentId, razorpayOrderId, razorpaySignature } = req.body;
     if (!items || items.length === 0) return res.status(400).json({ message: 'No items in order' });
 
     const totalAmount = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
     const trackingId = `TRK${Date.now()}`;
+    const isPaid = paymentMethod !== 'COD' && razorpayPaymentId;
 
     const order = await Order.create({
       userId: req.user._id,
@@ -20,6 +88,11 @@ router.post('/', protect, async (req, res) => {
       totalAmount,
       shippingAddress,
       paymentMethod: paymentMethod || 'COD',
+      paymentStatus: isPaid ? 'paid' : 'unpaid',
+      status: isPaid ? 'confirmed' : 'pending',
+      razorpayPaymentId: razorpayPaymentId || '',
+      razorpayOrderId: razorpayOrderId || '',
+      razorpaySignature: razorpaySignature || '',
       trackingId,
     });
 
