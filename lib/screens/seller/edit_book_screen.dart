@@ -68,9 +68,11 @@ class _EditBookScreenState extends State<EditBookScreen> {
 
       final auth = context.read<AuthProvider>();
       final sellerId = auth.user?.id;
+      final token = auth.user?.token;
       final downloadUrl = await FirebaseStorageService.uploadBookCover(
         file,
         sellerId: sellerId,
+        token: token,
       );
 
       if (mounted) {

@@ -233,6 +233,25 @@ class ApiService {
     return res.statusCode == 200;
   }
 
+  static Future<String> uploadCoverImage(dynamic imageFile, {String? token}) async {
+    final url = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.uploadCover}');
+    final request = http.MultipartRequest('POST', url);
+    if (token != null && token.isNotEmpty) {
+      request.headers['Authorization'] = 'Bearer $token';
+    }
+    request.files.add(await http.MultipartFile.fromPath('cover', imageFile.path));
+    final streamedResponse = await request.send().timeout(_timeout);
+    final response = await http.Response.fromStream(streamedResponse);
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      final data = json.decode(response.body);
+      return data['imageUrl'] as String;
+    } else {
+      final data = json.decode(response.body);
+      throw Exception(data['message'] ?? 'Failed to upload cover image');
+    }
+  }
+
   static Future<List<Book>> getRecommendations(String token) async {
     final url =
         Uri.parse('${ApiConstants.baseUrl}${ApiConstants.recommendations}');

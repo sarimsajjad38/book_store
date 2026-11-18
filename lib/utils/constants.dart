@@ -24,6 +24,7 @@ class ApiConstants {
 
   // Book endpoints
   static const String books = '/books';
+  static const String uploadCover = '/books/upload-cover';
   static const String featuredBooks = '/books?featured=true';
   static const String searchBooks = '/books';
   static const String booksByCategory = '/books';
