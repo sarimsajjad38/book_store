@@ -4,7 +4,12 @@ const User = require('../models/User');
 const { protect } = require('../middleware/auth');
 const router = express.Router();
 
-const generateToken = (id) => jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRE });
+const generateToken = (id) =>
+  jwt.sign(
+    { id },
+    process.env.JWT_SECRET || 'booknest_jwt_secret_key_change_in_production_2026',
+    { expiresIn: process.env.JWT_EXPIRE || '30d' }
+  );
 
 // POST /api/auth/signup
 router.post('/signup', async (req, res) => {

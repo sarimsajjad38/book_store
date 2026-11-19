@@ -1,8 +1,19 @@
 import 'package:flutter/foundation.dart';
 
 class ApiConstants {
-  /// Base API URL dynamically resolved based on current platform
+  /// Base API URL dynamically resolved based on environment and platform.
+  /// Pass `--dart-define=API_URL=https://your-api.onrender.com/api` at build time
+  /// to point production builds directly to your live cloud backend.
   static String get baseUrl {
+    const String envUrl = String.fromEnvironment('API_URL');
+    if (envUrl.isNotEmpty) {
+      return envUrl;
+    }
+
+    if (customBaseUrl != null && customBaseUrl!.isNotEmpty) {
+      return customBaseUrl!;
+    }
+
     if (kIsWeb) {
       return 'http://localhost:5001/api';
     }
@@ -11,6 +22,9 @@ class ApiConstants {
     }
     return 'http://localhost:5001/api';
   }
+
+  /// Optional runtime override for custom server configuration
+  static String? customBaseUrl;
 
   /// Toggle whether the app automatically falls back to local Mock data
   /// if the backend server is unreachable

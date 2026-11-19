@@ -2,6 +2,9 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const dotenv = require('dotenv');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
+const mongoose = require('mongoose');
 
 // Load env vars from backend/.env first, then root .env fallback
 dotenv.config({ path: path.resolve(__dirname, '.env') });
@@ -13,6 +16,37 @@ const connectDB = require('./config/db');
 connectDB();
 
 const app = express();
+
+// Trust reverse proxy (enables HTTPS detection and accurate client IP in cloud deployments)
+app.set('trust proxy', 1);
+
+// Security Headers (Helmet)
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+  })
+);
+
+// Rate Limiting to prevent DoS & brute-force attacks
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: process.env.NODE_ENV === 'production' ? 500 : 2000,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: 'Too many requests from this IP, please try again after 15 minutes.' },
+});
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 30, // 30 login/registration requests per 15 min
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: 'Too many authentication attempts, please try again after 15 minutes.' },
+});
+
+app.use('/api/', apiLimiter);
+app.use('/api/auth/login', authLimiter);
+app.use('/api/auth/register', authLimiter);
 
 // Middleware
 const allowedOrigins = process.env.CLIENT_ORIGINS
@@ -105,13 +139,14 @@ app.use((err, req, res, next) => {
 
 // Start server with automatic port-conflict fallback
 const DEFAULT_PORT = parseInt(process.env.PORT, 10) || 5001;
+let runningServer = null;
 
 function startServer(port, maxAttempts = 5, currentAttempt = 0) {
-  const server = app.listen(port, () => {
+  runningServer = app.listen(port, () => {
     console.log(`🚀 BookNest API running on port ${port}`);
   });
 
-  server.on('error', (err) => {
+  runningServer.on('error', (err) => {
     if (err.code === 'EADDRINUSE' && currentAttempt < maxAttempts) {
       console.warn(`⚠️  Port ${port} is in use. Attempting next port ${port + 1}...`);
       startServer(port + 1, maxAttempts, currentAttempt + 1);
@@ -120,5 +155,29 @@ function startServer(port, maxAttempts = 5, currentAttempt = 0) {
     }
   });
 }
+
+function gracefulShutdown(signal) {
+  console.log(`\n🛑 Received ${signal}. Closing HTTP server and database connections...`);
+  if (runningServer) {
+    runningServer.close(() => {
+      console.log('✅ HTTP server closed.');
+      mongoose.connection.close(false).then(() => {
+        console.log('✅ MongoDB connection closed.');
+        process.exit(0);
+      });
+    });
+  } else {
+    process.exit(0);
+  }
+
+  // Force exit after 10 seconds timeout
+  setTimeout(() => {
+    console.error('⚠️  Forced shutdown after timeout.');
+    process.exit(1);
+  }, 10000);
+}
+
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
 startServer(DEFAULT_PORT);
