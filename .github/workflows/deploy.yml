@@ -1,0 +1,230 @@
+name: Deploy BookNest (CD Pipeline)
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      deploy_backend:
+        description: 'Deploy Backend to Cloud (Render)?'
+        required: true
+        type: boolean
+        default: true
+      deploy_web:
+        description: 'Deploy Flutter Web to GitHub Pages?'
+        required: true
+        type: boolean
+        default: true
+      release_android:
+        description: 'Build & Publish Android Release (.apk & .aab)?'
+        required: true
+        type: boolean
+        default: true
+      api_url:
+        description: 'Production API Base URL (leave empty to use default/secret)'
+        required: false
+        type: string
+        default: ''
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: 'deploy-${{ github.ref }}'
+  cancel-in-progress: true
+
+jobs:
+  # =========================================================================
+  # JOB 1: Backend Deployment to Cloud (Render / Railway / Webhook)
+  # =========================================================================
+  deploy-backend:
+    name: Deploy Backend API
+    runs-on: ubuntu-latest
+    if: github.event_name != 'workflow_dispatch' || inputs.deploy_backend == true
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install Dependencies & Verify
+        run: |
+          cd backend
+          npm ci
+          node --check server.js
+          node --check routes/auth.js
+          node --check routes/books.js
+          node --check routes/orders.js
+
+      - name: Trigger Cloud Deployment (Render Deploy Hook)
+        env:
+          RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
+        run: |
+          if [ -n "$RENDER_DEPLOY_HOOK" ]; then
+            echo "🚀 Triggering deployment on Render..."
+            HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$RENDER_DEPLOY_HOOK")
+            if [ "$HTTP_STATUS" -eq 200 ] || [ "$HTTP_STATUS" -eq 201 ]; then
+              echo "✅ Render deployment triggered successfully (HTTP $HTTP_STATUS)!"
+            else
+              echo "⚠️ Render deploy hook returned status $HTTP_STATUS"
+            fi
+          else
+            echo "ℹ️ Secret RENDER_DEPLOY_HOOK is not set."
+            echo "👉 To enable automated 1-click cloud deployments, add RENDER_DEPLOY_HOOK in GitHub Repo Settings -> Secrets."
+          fi
+
+  # =========================================================================
+  # JOB 2: Flutter Web Deployment to GitHub Pages
+  # =========================================================================
+  deploy-web:
+    name: Build & Deploy Flutter Web
+    runs-on: ubuntu-latest
+    if: github.event_name != 'workflow_dispatch' || inputs.deploy_web == true
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          flutter-version: '3.35.6'
+          cache: true
+
+      - name: Get Dependencies
+        run: flutter pub get
+
+      - name: Build Web Release
+        env:
+          CUSTOM_API_URL: ${{ inputs.api_url }}
+          SECRET_API_URL: ${{ secrets.PROD_API_URL }}
+        run: |
+          TARGET_API="${CUSTOM_API_URL:-$SECRET_API_URL}"
+          if [ -n "$TARGET_API" ]; then
+            echo "Building Web with API URL: $TARGET_API"
+            flutter build web --release --base-href "/book_store/" --dart-define=API_URL="$TARGET_API"
+          else
+            echo "Building Web with default/fallback API URL"
+            flutter build web --release --base-href "/book_store/"
+          fi
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages Artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: build/web
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+  # =========================================================================
+  # JOB 3: Android Release Build (.apk & .aab) + GitHub Releases
+  # =========================================================================
+  release-android:
+    name: Build & Publish Android Release
+    runs-on: ubuntu-latest
+    if: github.event_name != 'workflow_dispatch' || inputs.release_android == true
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          flutter-version: '3.35.6'
+          cache: true
+
+      - name: Get Dependencies
+        run: flutter pub get
+
+      - name: Restore Keystore & key.properties (Optional Secret Injection)
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEY_PROPERTIES: ${{ secrets.KEY_PROPERTIES }}
+        run: |
+          if [ -n "$KEYSTORE_BASE64" ]; then
+            echo "Restoring release keystore from GitHub Secrets..."
+            echo "$KEYSTORE_BASE64" | base64 --decode > android/app/upload-keystore.jks
+          fi
+          if [ -n "$KEY_PROPERTIES" ]; then
+            echo "Restoring key.properties from GitHub Secrets..."
+            echo "$KEY_PROPERTIES" > android/key.properties
+          fi
+
+      - name: Build Android App Bundle (.aab)
+        env:
+          CUSTOM_API_URL: ${{ inputs.api_url }}
+          SECRET_API_URL: ${{ secrets.PROD_API_URL }}
+        run: |
+          TARGET_API="${CUSTOM_API_URL:-$SECRET_API_URL}"
+          if [ -n "$TARGET_API" ]; then
+            flutter build appbundle --release --android-skip-build-dependency-validation --dart-define=API_URL="$TARGET_API"
+          else
+            flutter build appbundle --release --android-skip-build-dependency-validation
+          fi
+
+      - name: Build Android APK (.apk)
+        env:
+          CUSTOM_API_URL: ${{ inputs.api_url }}
+          SECRET_API_URL: ${{ secrets.PROD_API_URL }}
+        run: |
+          TARGET_API="${CUSTOM_API_URL:-$SECRET_API_URL}"
+          if [ -n "$TARGET_API" ]; then
+            flutter build apk --release --android-skip-build-dependency-validation --dart-define=API_URL="$TARGET_API"
+          else
+            flutter build apk --release --android-skip-build-dependency-validation
+          fi
+
+      - name: Upload AAB Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release-aab
+          path: build/app/outputs/bundle/release/app-release.aab
+          retention-days: 30
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+          retention-days: 30
+
+      - name: Publish to GitHub Releases (Tags or Manual Dispatch)
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
+        with:
+          tag_name: ${{ github.ref_name || format('v1.0.{0}', github.run_number) }}
+          name: ${{ format('Release {0}', github.ref_name || format('v1.0.{0}', github.run_number)) }}
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+          files: |
+            build/app/outputs/flutter-apk/app-release.apk
+            build/app/outputs/bundle/release/app-release.aab
