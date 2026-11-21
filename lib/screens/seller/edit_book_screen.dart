@@ -208,7 +208,7 @@ class _EditBookScreenState extends State<EditBookScreen> {
           Text('Category', style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600, color: Theme.of(context).textTheme.bodyMedium?.color)),
           const SizedBox(height: 8),
           DropdownButtonFormField<String>(
-            initialValue: BookCategories.all.contains(_category) ? _category : 'Fiction',
+            value: BookCategories.all.contains(_category) ? _category : 'Fiction',
             decoration: InputDecoration(filled: true, fillColor: Theme.of(context).inputDecorationTheme.fillColor ?? Theme.of(context).cardColor, border: OutlineInputBorder(borderRadius: BorderRadius.circular(12))),
             items: BookCategories.all.where((c) => c != 'All').map((c) => DropdownMenuItem(value: c, child: Text(c))).toList(),
             onChanged: (v) => setState(() => _category = v!),

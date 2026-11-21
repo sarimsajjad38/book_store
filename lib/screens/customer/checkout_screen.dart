@@ -8,6 +8,7 @@ import '../../providers/cart_provider.dart';
 import '../../providers/order_provider.dart';
 import '../../services/api_service.dart';
 import '../../utils/app_theme.dart';
+import '../../utils/constants.dart';
 import '../../widgets/gradient_button.dart';
 
 class CheckoutScreen extends StatefulWidget {
@@ -19,10 +20,16 @@ class CheckoutScreen extends StatefulWidget {
 
 class _CheckoutScreenState extends State<CheckoutScreen> {
   final _addressController = TextEditingController();
+  final _promoController = TextEditingController();
   String _paymentMethod = 'COD';
   bool _orderPlaced = false;
   bool _isProcessingPayment = false;
   Razorpay? _razorpay;
+
+  String? _appliedPromoCode;
+  double _discountAmount = 0.0;
+  String? _promoMessage;
+  bool _isPromoValid = false;
 
   @override
   void initState() {
@@ -41,8 +48,80 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   @override
   void dispose() {
     _addressController.dispose();
+    _promoController.dispose();
     _razorpay?.clear();
     super.dispose();
+  }
+
+  void _applyPromo(double subtotal, double deliveryCharge) {
+    final code = _promoController.text.trim().toUpperCase();
+    if (code.isEmpty) return;
+
+    FocusScope.of(context).unfocus();
+
+    if (code == 'WELCOME50') {
+      if (subtotal < 150) {
+        setState(() {
+          _isPromoValid = false;
+          _promoMessage = 'Min. order value ₹150 required for WELCOME50';
+          _appliedPromoCode = null;
+          _discountAmount = 0.0;
+        });
+      } else {
+        setState(() {
+          _isPromoValid = true;
+          _promoMessage = 'WELCOME50 applied! Flat ₹50 saved';
+          _appliedPromoCode = code;
+          _discountAmount = 50.0;
+        });
+      }
+    } else if (code == 'BOOKNEST10') {
+      final discount = (subtotal * 0.10).roundToDouble();
+      setState(() {
+        _isPromoValid = true;
+        _promoMessage = 'BOOKNEST10 applied! 10% (₹${discount.toStringAsFixed(0)}) saved';
+        _appliedPromoCode = code;
+        _discountAmount = discount;
+      });
+    } else if (code == 'FREESHIP') {
+      if (deliveryCharge <= 0) {
+        setState(() {
+          _isPromoValid = false;
+          _promoMessage = 'Delivery is already FREE for this order';
+          _appliedPromoCode = null;
+          _discountAmount = 0.0;
+        });
+      } else {
+        setState(() {
+          _isPromoValid = true;
+          _promoMessage = 'FREESHIP applied! Free delivery saved ₹${deliveryCharge.toStringAsFixed(0)}';
+          _appliedPromoCode = code;
+          _discountAmount = deliveryCharge;
+        });
+      }
+    } else {
+      setState(() {
+        _isPromoValid = false;
+        _promoMessage = 'Invalid promo code. Try WELCOME50 or BOOKNEST10';
+        _appliedPromoCode = null;
+        _discountAmount = 0.0;
+      });
+    }
+  }
+
+  void _removePromo() {
+    setState(() {
+      _promoController.clear();
+      _appliedPromoCode = null;
+      _discountAmount = 0.0;
+      _promoMessage = null;
+      _isPromoValid = false;
+    });
+  }
+
+  double _calculatePayable(CartProvider cart) {
+    final net = cart.finalAmount - _discountAmount;
+    return net < 0 ? 0.0 : net;
   }
 
   void _handlePaymentSuccess(PaymentSuccessResponse response) async {
@@ -159,12 +238,13 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     setState(() => _isProcessingPayment = true);
 
     try {
+      final payable = _calculatePayable(cart);
       final rzOrder = await ApiService.createRazorpayOrder(
-        amount: cart.finalAmount,
+        amount: payable,
         token: auth.user?.token,
       );
 
-      final keyId = rzOrder['keyId'] as String? ?? 'rzp_test_1DP5mmOlF5G5ag';
+      final keyId = rzOrder['keyId'] as String? ?? ApiConstants.razorpayKeyId;
       final orderId = rzOrder['orderId'] as String?;
 
       if (kIsWeb || _razorpay == null) {
@@ -192,7 +272,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
 
       final options = <String, dynamic>{
         'key': keyId,
-        'amount': (cart.finalAmount * 100).toInt(),
+        'amount': (payable * 100).toInt(),
         'name': 'BookNest',
         'description': 'Purchase of ${cart.itemCount} book(s)',
         'timeout': 300,
@@ -233,6 +313,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   Widget build(BuildContext context) {
     final cart = context.watch<CartProvider>();
     final auth = context.watch<AuthProvider>();
+    final payable = _calculatePayable(cart);
 
     if (_orderPlaced) {
       return _buildOrderSuccessScreen(context);
@@ -243,8 +324,41 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         title: Text('Checkout',
             style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
       ),
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: Theme.of(context).cardColor,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.08),
+              blurRadius: 10,
+              offset: const Offset(0, -4),
+            ),
+          ],
+          border: Border(
+            top: BorderSide(
+              color: Theme.of(context).dividerColor.withOpacity(0.5),
+            ),
+          ),
+        ),
+        child: SafeArea(
+          bottom: true,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            child: Consumer<OrderProvider>(
+              builder: (_, orderProv, __) {
+                return GradientButton(
+                  text: 'Place Order  •  ₹${payable.toStringAsFixed(0)}',
+                  isLoading: orderProv.isLoading || _isProcessingPayment,
+                  icon: Icons.check_circle_outline_rounded,
+                  onPressed: () => _handlePlaceOrder(cart, auth, orderProv),
+                );
+              },
+            ),
+          ),
+        ),
+      ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -302,17 +416,38 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       ),
                     ],
                   ),
+                  if (_discountAmount > 0) ...[
+                    const SizedBox(height: 6),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('Promo ($_appliedPromoCode)',
+                            style: GoogleFonts.poppins(
+                                fontSize: 13,
+                                color: AppColors.success,
+                                fontWeight: FontWeight.w500)),
+                        Text(
+                          '-₹${_discountAmount.toStringAsFixed(0)}',
+                          style: GoogleFonts.poppins(
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.success,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
                   const SizedBox(height: 8),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('Total',
+                      Text('Total Payable',
                           style: GoogleFonts.poppins(
                             fontWeight: FontWeight.w700,
                             fontSize: 16,
                           )),
                       Text(
-                        '₹${cart.finalAmount.toStringAsFixed(0)}',
+                        '₹${payable.toStringAsFixed(0)}',
                         style: GoogleFonts.poppins(
                           fontWeight: FontWeight.w700,
                           fontSize: 18,
@@ -326,7 +461,126 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 ],
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
+
+            // Promo Code Card
+            _buildSectionTitle('Have a Promo Code?'),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Theme.of(context).cardColor,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: _appliedPromoCode != null
+                      ? AppColors.success.withOpacity(0.5)
+                      : Theme.of(context).dividerColor,
+                  width: _appliedPromoCode != null ? 1.5 : 1,
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: _promoController,
+                          textCapitalization: TextCapitalization.characters,
+                          enabled: _appliedPromoCode == null,
+                          decoration: InputDecoration(
+                            hintText: 'Enter code (e.g. WELCOME50)',
+                            hintStyle: GoogleFonts.poppins(fontSize: 13),
+                            prefixIcon: const Icon(Icons.local_offer_outlined, size: 20),
+                            isDense: true,
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      if (_appliedPromoCode == null)
+                        ElevatedButton(
+                          onPressed: () => _applyPromo(cart.totalAmount, cart.deliveryCharge),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Theme.of(context).brightness == Brightness.dark
+                                ? AppColors.accentLight
+                                : AppColors.primary,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          child: Text(
+                            'Apply',
+                            style: GoogleFonts.poppins(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 13,
+                            ),
+                          ),
+                        )
+                      else
+                        TextButton.icon(
+                          onPressed: _removePromo,
+                          icon: const Icon(Icons.close_rounded, size: 16, color: AppColors.error),
+                          label: Text(
+                            'Remove',
+                            style: GoogleFonts.poppins(
+                              color: AppColors.error,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                  if (_promoMessage != null) ...[
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Icon(
+                          _isPromoValid ? Icons.check_circle_rounded : Icons.info_outline_rounded,
+                          size: 15,
+                          color: _isPromoValid ? AppColors.success : AppColors.error,
+                        ),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            _promoMessage!,
+                            style: GoogleFonts.poppins(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                              color: _isPromoValid ? AppColors.success : AppColors.error,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                  if (_appliedPromoCode == null) ...[
+                    const SizedBox(height: 10),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 6,
+                      children: [
+                        _buildQuickCouponChip('WELCOME50', 'Flat ₹50 OFF', () {
+                          _promoController.text = 'WELCOME50';
+                          _applyPromo(cart.totalAmount, cart.deliveryCharge);
+                        }),
+                        _buildQuickCouponChip('BOOKNEST10', '10% OFF', () {
+                          _promoController.text = 'BOOKNEST10';
+                          _applyPromo(cart.totalAmount, cart.deliveryCharge);
+                        }),
+                      ],
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
 
             // Shipping Address
             _buildSectionTitle('Shipping Address'),
@@ -348,7 +602,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
 
             // Payment Method
             _buildSectionTitle('Payment Method'),
@@ -370,18 +624,37 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
               'CARD',
               Icons.credit_card_rounded,
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: 20),
+          ],
+        ),
+      ),
+    );
+  }
 
-            // Place Order Button
-            Consumer<OrderProvider>(
-              builder: (_, orderProv, __) {
-                return GradientButton(
-                  text: 'Place Order  •  ₹${cart.finalAmount.toStringAsFixed(0)}',
-                  isLoading: orderProv.isLoading || _isProcessingPayment,
-                  icon: Icons.check_circle_outline_rounded,
-                  onPressed: () => _handlePlaceOrder(cart, auth, orderProv),
-                );
-              },
+  Widget _buildQuickCouponChip(String code, String label, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: AppColors.accentLight.withOpacity(0.12),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: AppColors.accentLight.withOpacity(0.4)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.confirmation_number_outlined, size: 14, color: AppColors.accentLight),
+            const SizedBox(width: 5),
+            Text(
+              '$code ($label)',
+              style: GoogleFonts.poppins(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? AppColors.accentLight
+                    : AppColors.primary,
+              ),
             ),
           ],
         ),

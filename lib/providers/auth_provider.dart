@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user.dart';
 import '../services/api_service.dart';
@@ -22,6 +23,8 @@ class AuthProvider extends ChangeNotifier {
   AuthProvider() {
     _loadStoredUser();
   }
+
+  final GoogleSignIn _googleSignIn = GoogleSignIn(scopes: ['email', 'profile']);
 
   void _syncFcmToken(String? token) {
     final fcmToken = NotificationService.fcmToken;
@@ -182,6 +185,56 @@ class AuthProvider extends ChangeNotifier {
     }
   }
 
+  Future<bool> signInWithGoogle({UserRole role = UserRole.customer}) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      final account = await _googleSignIn.signIn();
+      if (account == null) {
+        _isLoading = false;
+        notifyListeners();
+        return false;
+      }
+
+      try {
+        final apiUser = await ApiService.googleSignIn(
+          email: account.email,
+          name: account.displayName,
+          avatarUrl: account.photoUrl,
+        );
+        _user = apiUser;
+        await _saveUser(apiUser);
+        _syncFcmToken(apiUser.token);
+        _isLoading = false;
+        notifyListeners();
+        return true;
+      } catch (apiErr) {
+        // Fallback for offline/local environment
+        final googleUser = AppUser(
+          id: 'google_${account.id}',
+          name: account.displayName ?? 'Google User',
+          email: account.email,
+          role: role,
+          avatarUrl: account.photoUrl,
+          token: 'google_token_${DateTime.now().millisecondsSinceEpoch}',
+          createdAt: DateTime.now(),
+        );
+        _user = googleUser;
+        await _saveUser(googleUser);
+        _isLoading = false;
+        notifyListeners();
+        return true;
+      }
+    } catch (e) {
+      _error = 'Google Sign-In failed. Please try again.';
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
   Future<bool> updateProfile({
     String? name,
     String? phone,
@@ -257,6 +310,11 @@ class AuthProvider extends ChangeNotifier {
   }
 
   Future<void> logout() async {
+    try {
+      if (await _googleSignIn.isSignedIn()) {
+        await _googleSignIn.signOut();
+      }
+    } catch (_) {}
     _user = null;
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('user_data');

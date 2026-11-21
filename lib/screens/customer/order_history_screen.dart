@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
@@ -98,7 +98,19 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                               const SizedBox(height: 4),
                               Text(DateFormat('MMM dd, yyyy').format(order.createdAt), style: GoogleFonts.poppins(fontSize: 12, color: Theme.of(context).textTheme.bodySmall?.color)),
                               const SizedBox(height: 8),
-                              Row(children: [const Spacer(), Text('Track Order →', style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.primary))]),
+                              Row(children: [
+                                const Spacer(),
+                                Text(
+                                  'Track Order →',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                    color: Theme.of(context).brightness == Brightness.dark
+                                        ? AppColors.accentLight
+                                        : AppColors.primary,
+                                  ),
+                                ),
+                              ]),
                             ],
                           ),
                         ),

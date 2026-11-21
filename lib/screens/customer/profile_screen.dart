@@ -395,7 +395,7 @@ class ProfileScreen extends StatelessWidget {
                         Switch(
                           value: themeProvider.isDarkMode,
                           onChanged: (val) => themeProvider.toggleTheme(val),
-                          activeThumbColor: AppColors.accent,
+                          activeColor: AppColors.accent,
                         ),
                       ],
                     ),

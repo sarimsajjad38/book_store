@@ -80,6 +80,32 @@ class ApiService {
     }
   }
 
+  static Future<AppUser> googleSignIn({
+    required String email,
+    String? name,
+    String? avatarUrl,
+  }) async {
+    final url = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.googleLogin}');
+    final res = await http
+        .post(
+          url,
+          headers: _headers(),
+          body: json.encode({
+            'email': email,
+            'name': name,
+            'avatarUrl': avatarUrl,
+          }),
+        )
+        .timeout(_timeout);
+
+    final data = json.decode(res.body);
+    if (res.statusCode == 200 || res.statusCode == 201) {
+      return AppUser.fromJson(data);
+    } else {
+      throw Exception(data['message'] ?? 'Google sign in failed');
+    }
+  }
+
   static Future<AppUser> getProfile(String token) async {
     final url = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.profile}');
     final res = await http.get(url, headers: _headers(token)).timeout(_timeout);
@@ -308,10 +334,10 @@ class ApiService {
       }
     }
 
-    // Resilient fallback: standard test mode so user is never blocked by network timeouts
+    // Resilient fallback: standard mode so user is never blocked by network timeouts
     return {
       'orderId': null,
-      'keyId': 'rzp_test_1DP5mmOlF5G5ag',
+      'keyId': ApiConstants.razorpayKeyId,
       'amount': (amount * 100).toInt(),
     };
   }

@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
@@ -74,6 +74,13 @@ class _SignUpScreenState extends State<SignUpScreen>
 
     if (success && mounted) {
       _navigateByRole(authProvider.role!);
+    }
+  }
+
+  Future<void> _handleGoogleSignIn(AuthProvider auth) async {
+    final success = await auth.signInWithGoogle(role: _selectedRole);
+    if (success && mounted && auth.role != null) {
+      _navigateByRole(auth.role!);
     }
   }
 
@@ -341,6 +348,62 @@ class _SignUpScreenState extends State<SignUpScreen>
                                   isLoading: auth.isLoading,
                                   onPressed: _handleSignUp,
                                   icon: Icons.person_add_rounded,
+                                ),
+
+                                const SizedBox(height: 16),
+                                Row(
+                                  children: [
+                                    Expanded(child: Divider(color: Colors.grey.shade300)),
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                                      child: Text(
+                                        'OR',
+                                        style: GoogleFonts.poppins(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w600,
+                                          color: Colors.grey.shade600,
+                                        ),
+                                      ),
+                                    ),
+                                    Expanded(child: Divider(color: Colors.grey.shade300)),
+                                  ],
+                                ),
+                                const SizedBox(height: 16),
+
+                                OutlinedButton(
+                                  onPressed: auth.isLoading ? null : () => _handleGoogleSignIn(auth),
+                                  style: OutlinedButton.styleFrom(
+                                    minimumSize: const Size(double.infinity, 50),
+                                    side: BorderSide(color: Colors.grey.shade300),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    backgroundColor: Colors.white,
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Image.network(
+                                        'https://www.gstatic.com/images/branding/product/1x/gsa_512dp.png',
+                                        width: 22,
+                                        height: 22,
+                                        errorBuilder: (_, __, ___) => const Icon(
+                                          Icons.g_mobiledata_rounded,
+                                          color: Colors.red,
+                                          size: 26,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Text(
+                                        'Sign up with Google',
+                                        style: GoogleFonts.poppins(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w600,
+                                          color: const Color(0xFF2D3748),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ],
                             );

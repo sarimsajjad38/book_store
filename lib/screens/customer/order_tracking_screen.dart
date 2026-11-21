@@ -12,6 +12,9 @@ class OrderTrackingScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final accentColor = isDark ? AppColors.accentLight : AppColors.primary;
+
     return Scaffold(
       appBar: AppBar(title: Text('Track Order', style: GoogleFonts.poppins(fontWeight: FontWeight.w600))),
       body: SingleChildScrollView(
@@ -27,7 +30,7 @@ class OrderTrackingScreen extends StatelessWidget {
                 Row(children: [
                   Text(order.id, style: GoogleFonts.poppins(fontWeight: FontWeight.w700, fontSize: 16)),
                   const Spacer(),
-                  Text('₹${order.totalAmount.toStringAsFixed(0)}', style: GoogleFonts.poppins(fontWeight: FontWeight.w700, fontSize: 18, color: AppColors.primary)),
+                  Text('₹${order.totalAmount.toStringAsFixed(0)}', style: GoogleFonts.poppins(fontWeight: FontWeight.w700, fontSize: 18, color: accentColor)),
                 ]),
                 const SizedBox(height: 8),
                 Text('Placed on ${DateFormat('MMMM dd, yyyy').format(order.createdAt)}', style: GoogleFonts.poppins(fontSize: 13, color: Theme.of(context).textTheme.bodySmall?.color)),
@@ -61,7 +64,7 @@ class OrderTrackingScreen extends StatelessWidget {
                   Text(item.title, style: GoogleFonts.poppins(fontWeight: FontWeight.w600, fontSize: 13), maxLines: 2, overflow: TextOverflow.ellipsis),
                   Text('by ${item.author}', style: GoogleFonts.poppins(fontSize: 11, color: Theme.of(context).textTheme.bodySmall?.color)),
                   const SizedBox(height: 4),
-                  Text('₹${item.price.toStringAsFixed(0)} × ${item.quantity}', style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.primary)),
+                  Text('₹${item.price.toStringAsFixed(0)} × ${item.quantity}', style: GoogleFonts.poppins(fontSize: 13, fontWeight: FontWeight.w600, color: accentColor)),
                 ])),
               ]),
             )),
@@ -75,7 +78,7 @@ class OrderTrackingScreen extends StatelessWidget {
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(color: Theme.of(context).cardColor, borderRadius: BorderRadius.circular(12), border: Border.all(color: Theme.of(context).dividerColor)),
               child: Row(children: [
-                const Icon(Icons.location_on_outlined, color: AppColors.primary, size: 20),
+                Icon(Icons.location_on_outlined, color: accentColor, size: 20),
                 const SizedBox(width: 10),
                 Expanded(child: Text(order.shippingAddress.isNotEmpty ? order.shippingAddress : 'Not specified', style: GoogleFonts.poppins(fontSize: 13, color: Theme.of(context).textTheme.bodyMedium?.color))),
               ]),

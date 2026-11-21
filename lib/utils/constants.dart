@@ -26,6 +26,13 @@ class ApiConstants {
   /// Optional runtime override for custom server configuration
   static String? customBaseUrl;
 
+  /// Razorpay Key ID for client checkout.
+  /// Pass `--dart-define=RAZORPAY_KEY_ID=rzp_live_...` at build time for production.
+  static const String razorpayKeyId = String.fromEnvironment(
+    'RAZORPAY_KEY_ID',
+    defaultValue: 'rzp_test_1DP5mmOlF5G5ag',
+  );
+
   /// Toggle whether the app automatically falls back to local Mock data
   /// if the backend server is unreachable
   static bool enableOfflineMockFallback = true;
@@ -33,6 +40,7 @@ class ApiConstants {
   // Auth endpoints
   static const String login = '/auth/login';
   static const String signup = '/auth/signup';
+  static const String googleLogin = '/auth/google';
   static const String profile = '/auth/profile';
   static const String deleteAccount = '/auth/account';
   static const String updateFcmToken = '/auth/fcm-token';

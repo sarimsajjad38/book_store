@@ -1,5 +1,6 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 const User = require('../models/User');
 const { protect } = require('../middleware/auth');
 const router = express.Router();
@@ -41,6 +42,48 @@ router.post('/login', async (req, res) => {
     res.json({
       _id: user._id, name: user.name, email: user.email, role: user.role,
       phone: user.phone, address: user.address,
+      token: generateToken(user._id),
+      createdAt: user.createdAt,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// POST /api/auth/google - Authenticate or register with Google OAuth
+router.post('/google', async (req, res) => {
+  try {
+    const { email, name, avatarUrl } = req.body;
+    if (!email) return res.status(400).json({ message: 'Google account email is required' });
+
+    let user = await User.findOne({ email: email.toLowerCase() });
+    let isNewUser = false;
+
+    if (!user) {
+      isNewUser = true;
+      const randomPassword = crypto.randomBytes(16).toString('hex') + 'A1!';
+      user = await User.create({
+        name: name || 'Google Reader',
+        email: email.toLowerCase(),
+        password: randomPassword,
+        role: 'customer',
+        avatarUrl: avatarUrl || '',
+      });
+    } else {
+      if (!user.avatarUrl && avatarUrl) {
+        user.avatarUrl = avatarUrl;
+        await user.save();
+      }
+    }
+
+    res.status(isNewUser ? 201 : 200).json({
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      phone: user.phone,
+      address: user.address,
+      avatarUrl: user.avatarUrl,
       token: generateToken(user._id),
       createdAt: user.createdAt,
     });
