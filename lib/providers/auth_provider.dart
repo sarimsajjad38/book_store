@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user.dart';
 import '../services/api_service.dart';
 import '../services/mock_data_service.dart';
+import '../services/notification_service.dart';
 import '../utils/constants.dart';
 
 class AuthProvider extends ChangeNotifier {
@@ -22,12 +23,20 @@ class AuthProvider extends ChangeNotifier {
     _loadStoredUser();
   }
 
+  void _syncFcmToken(String? token) {
+    final fcmToken = NotificationService.fcmToken;
+    if (fcmToken != null && token != null && token.isNotEmpty) {
+      ApiService.updateFcmToken(fcmToken, token: token);
+    }
+  }
+
   Future<void> _loadStoredUser() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final userData = prefs.getString('user_data');
       if (userData != null) {
         _user = AppUser.fromJson(json.decode(userData));
+        _syncFcmToken(_user?.token);
         notifyListeners();
       }
     } catch (_) {
@@ -51,6 +60,7 @@ class AuthProvider extends ChangeNotifier {
         final apiUser = await ApiService.login(email, password);
         _user = apiUser;
         await _saveUser(apiUser);
+        _syncFcmToken(apiUser.token);
         _isLoading = false;
         notifyListeners();
         return true;
@@ -128,6 +138,7 @@ class AuthProvider extends ChangeNotifier {
         );
         _user = apiUser;
         await _saveUser(apiUser);
+        _syncFcmToken(apiUser.token);
         _isLoading = false;
         notifyListeners();
         return true;

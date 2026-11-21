@@ -35,6 +35,7 @@ class ApiConstants {
   static const String signup = '/auth/signup';
   static const String profile = '/auth/profile';
   static const String deleteAccount = '/auth/account';
+  static const String updateFcmToken = '/auth/fcm-token';
 
   // Book endpoints
   static const String books = '/books';

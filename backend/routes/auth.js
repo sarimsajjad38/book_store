@@ -70,6 +70,22 @@ router.put('/profile', protect, async (req, res) => {
   }
 });
 
+// PUT /api/auth/fcm-token - Update FCM push notification device token
+router.put('/fcm-token', protect, async (req, res) => {
+  try {
+    const { fcmToken } = req.body;
+    if (!fcmToken) return res.status(400).json({ message: 'fcmToken is required' });
+    const user = await User.findByIdAndUpdate(
+      req.user._id,
+      { fcmToken },
+      { new: true }
+    ).select('-password');
+    res.json({ message: 'FCM token updated successfully', user });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 // DELETE /api/auth/account - Delete user account (App Store & Google Play compliance)
 router.delete('/account', protect, async (req, res) => {
   try {

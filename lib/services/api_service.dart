@@ -123,6 +123,23 @@ class ApiService {
     return res.statusCode == 200;
   }
 
+  static Future<bool> updateFcmToken(String fcmToken, {String? token}) async {
+    if (token == null || token.isEmpty) return false;
+    try {
+      final url = Uri.parse('${ApiConstants.baseUrl}${ApiConstants.updateFcmToken}');
+      final res = await http
+          .put(
+            url,
+            headers: _headers(token),
+            body: json.encode({'fcmToken': fcmToken}),
+          )
+          .timeout(_timeout);
+      return res.statusCode == 200;
+    } catch (_) {
+      return false;
+    }
+  }
+
   // --- BOOKS ---
   static Future<List<Book>> getBooks({
     String? category,

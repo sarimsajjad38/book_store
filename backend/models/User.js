@@ -9,6 +9,7 @@ const userSchema = new mongoose.Schema({
   phone: { type: String, default: '' },
   address: { type: String, default: '' },
   avatarUrl: { type: String, default: '' },
+  fcmToken: { type: String, default: '' },
 }, { timestamps: true });
 
 userSchema.pre('save', async function(next) {

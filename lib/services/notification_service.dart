@@ -29,6 +29,13 @@ class NotificationService {
         provisional: false,
       );
 
+      // Enable foreground notification presentation on supported platforms
+      await _messaging.setForegroundNotificationPresentationOptions(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
+
       if (kDebugMode) {
         print('📱 Notification Permission Status: ${settings.authorizationStatus}');
       }
