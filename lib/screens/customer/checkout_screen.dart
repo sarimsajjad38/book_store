@@ -190,16 +190,19 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         return;
       }
 
-      final options = {
+      final options = <String, dynamic>{
         'key': keyId,
         'amount': (cart.finalAmount * 100).toInt(),
         'name': 'BookNest',
         'description': 'Purchase of ${cart.itemCount} book(s)',
-        'order_id': orderId,
         'timeout': 300,
         'prefill': {
-          'contact': auth.user?.phone ?? '9999999999',
-          'email': auth.user?.email ?? 'customer@booknest.com',
+          'contact': (auth.user?.phone != null && auth.user!.phone!.isNotEmpty)
+              ? auth.user!.phone!
+              : '9876543210',
+          'email': (auth.user != null && auth.user!.email.isNotEmpty)
+              ? auth.user!.email
+              : 'customer@booknest.com',
           'name': auth.user?.name ?? 'Valued Customer',
         },
         'theme': {
@@ -207,6 +210,11 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         },
       };
 
+      if (orderId != null && orderId.isNotEmpty && !orderId.startsWith('order_test_')) {
+        options['order_id'] = orderId;
+      }
+
+      setState(() => _isProcessingPayment = false);
       _razorpay!.open(options);
     } catch (e) {
       if (mounted) {
