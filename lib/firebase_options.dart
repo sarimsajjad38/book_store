@@ -21,7 +21,7 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyAL7Qf1DHAo5xuI7297wPz-xnWKH0Aljfg',
-    appId: '1:246212820567:android:6516e442b3a86114de6d12',
+    appId: '1:246212820567:android:95afe633ee67c9dade6d12',
     messagingSenderId: '246212820567',
     projectId: 'booknest-app-ef967',
     storageBucket: 'booknest-app-ef967.firebasestorage.app',
@@ -41,7 +41,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '246212820567',
     projectId: 'booknest-app-ef967',
     storageBucket: 'booknest-app-ef967.firebasestorage.app',
-    iosBundleId: 'com.booknest.app',
+    iosBundleId: 'com.booknestt.app',
   );
 }
 
